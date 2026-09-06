@@ -1,0 +1,6 @@
+{
+  "name": "Swipe X",
+  "description": "SwipeX — Centralized Job Opportunities Platform with Precision AI Matching, Real-Time Career Insights, and Automated Applications",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
