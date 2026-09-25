@@ -26,10 +26,10 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { OrionLogo } from '../components/OrionLogo';
+import { SwipeXLogo } from '../components/SwipeXLogo';
 
 export const LandingPage: React.FC = () => {
-  const { demoLogin, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'interview' | 'ats'>('overview');
@@ -37,12 +37,16 @@ export const LandingPage: React.FC = () => {
   const [heroSearch, setHeroSearch] = useState('');
   const [heroLocation, setHeroLocation] = useState('Remote');
 
-  const handleDemoStart = async () => {
-    await demoLogin();
-    if (heroSearch.trim()) {
-      navigate(`/candidate/explore?q=${encodeURIComponent(heroSearch.trim())}`);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isAuthenticated) {
+      if (heroSearch.trim()) {
+        navigate(`/candidate/explore?q=${encodeURIComponent(heroSearch.trim())}`);
+      } else {
+        navigate('/candidate/explore');
+      }
     } else {
-      navigate('/candidate/explore');
+      navigate('/register');
     }
   };
 
@@ -79,10 +83,7 @@ export const LandingPage: React.FC = () => {
           {/* Centralized Search & Filter Bar in Hero */}
           <div className="pt-4 max-w-3xl mx-auto">
             <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleDemoStart();
-              }}
+              onSubmit={handleSearchSubmit}
               className="p-3 sm:p-3.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 shadow-2xl flex flex-col sm:flex-row items-center gap-3"
             >
               <div className="relative flex-1 w-full flex items-center px-4">
@@ -315,14 +316,13 @@ export const LandingPage: React.FC = () => {
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={handleDemoStart}
-                className="px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all hover:scale-105 cursor-pointer"
+              <Link
+                to={isAuthenticated ? "/candidate/explore" : "/register"}
+                className="px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all hover:scale-105"
               >
-                <span>⚡ 1-Click Apply</span>
+                <span>Browse Opportunities</span>
                 <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              </Link>
             </div>
 
             {demoActionState && (
@@ -455,18 +455,17 @@ export const LandingPage: React.FC = () => {
           Join thousands of developers and tech professionals finding verified opportunities and passing high-stakes interviews with Swipe X.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-          <button
-            type="button"
-            onClick={handleDemoStart}
-            className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-xl transition-all hover:scale-105 cursor-pointer"
-          >
-            Launch Swipe X (1-Click Demo)
-          </button>
           <Link
-            to="/register"
-            className="w-full sm:w-auto px-9 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/15 backdrop-blur-md transition-all"
+            to={isAuthenticated ? "/candidate/explore" : "/register"}
+            className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-xl transition-all hover:scale-105 text-center"
           >
-            Create Candidate Account
+            Get Started Free
+          </Link>
+          <Link
+            to={isAuthenticated ? "/candidate/dashboard" : "/login"}
+            className="w-full sm:w-auto px-9 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/15 backdrop-blur-md transition-all text-center"
+          >
+            {isAuthenticated ? "Go to Dashboard" : "Sign In"}
           </Link>
         </div>
       </section>

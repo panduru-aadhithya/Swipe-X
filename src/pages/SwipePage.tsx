@@ -24,17 +24,19 @@ import {
   History,
   BrainCircuit
 } from 'lucide-react';
-import { Job, JobRecommendation, BehavioralProfile } from '../types';
-import { recommendationApi, swipeApi, savedJobApi } from '../api';
+import { Job, JobRecommendation, BehavioralProfile, Application } from '../types';
+import { recommendationApi, swipeApi, savedJobApi, applicationApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { JobCard } from '../components/JobCard';
 import { ApplyModal } from '../components/ApplyModal';
 import { JobDetailDrawer } from '../components/JobDetailDrawer';
+import { ApplicationSuccessModal } from '../components/ApplicationSuccessModal';
+import { ApplicationAlertModal } from '../components/ApplicationAlertModal';
 import { SwipeHistoryPage } from './SwipeHistoryPage';
 import { useNavigate, Link } from 'react-router-dom';
 
 export const SwipePage: React.FC = () => {
-  const { profile } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState<JobRecommendation[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -53,12 +55,26 @@ export const SwipePage: React.FC = () => {
   const [activeApplyingJob, setActiveApplyingJob] = useState<Job | null>(null);
   const [selectedDrawerJob, setSelectedDrawerJob] = useState<Job | null>(null);
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
+  const [submittingJobId, setSubmittingJobId] = useState<string | null>(null);
+  const [submittedSuccessData, setSubmittedSuccessData] = useState<{ job: Job; application: Application | null } | null>(null);
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    type: 'ALREADY_APPLIED' | 'LOGIN_REQUIRED' | 'ERROR';
+    jobTitle?: string;
+    companyName?: string;
+    message?: string;
+  }>({
+    isOpen: false,
+    type: 'ALREADY_APPLIED'
+  });
 
   // Swipe history for undo
   const [swipedHistory, setSwipedHistory] = useState<{ job: Job; decision: 'LEFT' | 'RIGHT' | 'SAVE' }[]>([]);
   const [toastNotification, setToastNotification] = useState<{
     message: string;
     jobTitle?: string;
+    job?: Job;
     canUndo?: boolean;
   } | null>(null);
 
@@ -66,15 +82,17 @@ export const SwipePage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [res, historyData] = await Promise.all([
+      const [res, historyData, apps] = await Promise.all([
         recommendationApi.getRecommendations({ limit: 40 }),
-        swipeApi.getHistory().catch(() => [])
+        swipeApi.getHistory().catch(() => []),
+        applicationApi.getApplications().catch(() => [])
       ]);
       setRecommendations(res.recommendations);
       if (res.behavioralProfile) {
         setBehavioralProfile(res.behavioralProfile);
       }
       setTotalHistoryCount(historyData.length);
+      setAppliedJobIds(new Set(apps.map(a => a.jobId)));
       setCurrentIndex(0);
       setSwipedHistory([]);
     } catch (err: any) {
@@ -99,7 +117,17 @@ export const SwipePage: React.FC = () => {
 
   const handleSwipeLeft = async (job: Job) => {
     try {
-      swipeApi.recordSwipe(job.id, 'LEFT').catch(() => {});
+      swipeApi.recordSwipe(job.id, 'left_swipe', {
+        jobTitle: job.title,
+        company: job.company,
+        skills: job.extractedSkills,
+        location: job.location,
+        employmentType: job.employmentType,
+        experienceLevel: job.experienceLevel,
+        salary: job.salaryMax ? `$${Math.round(job.salaryMin / 1000)}k - $${Math.round(job.salaryMax / 1000)}k` : undefined,
+        jobCategory: job.companyType
+      }).catch(() => {});
+
       setSwipedHistory((prev) => [...prev, { job, decision: 'LEFT' }]);
       setTotalHistoryCount((prev) => prev + 1);
       setBehavioralProfile((prev) => prev ? { ...prev, leftSwipesCount: prev.leftSwipesCount + 1, totalSwipes: prev.totalSwipes + 1 } : null);
@@ -108,6 +136,7 @@ export const SwipePage: React.FC = () => {
       setToastNotification({
         message: `Passed on ${job.title} at ${job.company}`,
         jobTitle: job.title,
+        job,
         canUndo: true
       });
       setTimeout(() => {
@@ -121,15 +150,88 @@ export const SwipePage: React.FC = () => {
 
   const handleSwipeRight = async (job: Job) => {
     try {
-      swipeApi.recordSwipe(job.id, 'RIGHT').catch(() => {});
+      swipeApi.recordSwipe(job.id, 'right_swipe', {
+        jobTitle: job.title,
+        company: job.company,
+        skills: job.extractedSkills,
+        location: job.location,
+        employmentType: job.employmentType,
+        experienceLevel: job.experienceLevel,
+        salary: job.salaryMax ? `$${Math.round(job.salaryMin / 1000)}k - $${Math.round(job.salaryMax / 1000)}k` : undefined,
+        jobCategory: job.companyType
+      }).catch(() => {});
+
       setSwipedHistory((prev) => [...prev, { job, decision: 'RIGHT' }]);
       setTotalHistoryCount((prev) => prev + 1);
+      setSavedJobIds((prev) => new Set(prev).add(job.id));
       setBehavioralProfile((prev) => prev ? { ...prev, rightSwipesCount: prev.rightSwipesCount + 1, totalSwipes: prev.totalSwipes + 1 } : null);
-      // Open the comprehensive 4-step ATS Apply Journey
-      setActiveApplyingJob(job);
+      
+      // Advance to next card in discovery feed (swipe right = interested, separate from applied)
+      setCurrentIndex((prev) => prev + 1);
+
+      setToastNotification({
+        message: `Marked as Interested ✓ Saved to your Interested roles.`,
+        jobTitle: job.title,
+        job,
+        canUndo: true
+      });
+      setTimeout(() => {
+        setToastNotification((curr) => curr?.jobTitle === job.title ? null : curr);
+      }, 5000);
     } catch (err) {
       console.error('Failed to record right swipe:', err);
-      setActiveApplyingJob(job);
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  const handleApplyClick = async (job: Job) => {
+    if (appliedJobIds.has(job.id)) {
+      setAlertModal({
+        isOpen: true,
+        type: 'ALREADY_APPLIED',
+        jobTitle: job.title,
+        companyName: job.company
+      });
+      return;
+    }
+
+    if (!isAuthenticated || !user) {
+      setAlertModal({
+        isOpen: true,
+        type: 'LOGIN_REQUIRED',
+        jobTitle: job.title,
+        companyName: job.company
+      });
+      return;
+    }
+
+    if (submittingJobId) return;
+
+    setSubmittingJobId(job.id);
+    try {
+      const app = await applicationApi.submitApplication({ jobId: job.id });
+      setAppliedJobIds((prev) => new Set(prev).add(job.id));
+      setSubmittedSuccessData({ job, application: app });
+    } catch (err: any) {
+      if (err?.message?.toLowerCase().includes('already applied') || err?.code === 'ALREADY_APPLIED') {
+        setAppliedJobIds((prev) => new Set(prev).add(job.id));
+        setAlertModal({
+          isOpen: true,
+          type: 'ALREADY_APPLIED',
+          jobTitle: job.title,
+          companyName: job.company
+        });
+      } else {
+        setAlertModal({
+          isOpen: true,
+          type: 'ERROR',
+          jobTitle: job.title,
+          companyName: job.company,
+          message: err?.message || 'Application could not be submitted. Please try again.'
+        });
+      }
+    } finally {
+      setSubmittingJobId(null);
     }
   };
 
@@ -231,29 +333,29 @@ export const SwipePage: React.FC = () => {
   }, [currentRecommendation, activeApplyingJob, selectedDrawerJob, currentIndex, swipedHistory]);
 
   return (
-    <div className="max-w-5xl xl:max-w-6xl mx-auto space-y-8 pb-24 relative">
+    <div className="max-w-5xl xl:max-w-6xl mx-auto space-y-5 sm:space-y-6 pb-20 relative -mt-1 sm:-mt-2">
       
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/80 dark:border-slate-800/80">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white font-serif tracking-tight">
-              Swipe Match
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight">
+              AI Match Deck
             </h1>
 
             {/* View Switcher Tabs */}
             <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
               <button
-                id="btn-tab-match-deck"
+                id="btn-tab-swipe-deck"
                 type="button"
                 onClick={() => setActiveTab('deck')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'deck'
                     ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <Flame className="w-4 h-4 text-amber-500" />
+                <Flame className="w-4 h-4 text-indigo-600" />
                 <span>AI Match Deck</span>
               </button>
 
@@ -261,13 +363,13 @@ export const SwipePage: React.FC = () => {
                 id="btn-tab-swipe-history"
                 type="button"
                 onClick={() => setActiveTab('history')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'history'
                     ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <History className="w-4 h-4 text-purple-500" />
+                <History className="w-4 h-4 text-indigo-500" />
                 <span>Swipe History ({totalHistoryCount})</span>
               </button>
             </div>
@@ -291,7 +393,7 @@ export const SwipePage: React.FC = () => {
               title={currentIndex > 0 ? "Undo last swipe action (U or ⌘Z)" : "No swipes to undo yet"}
               className={`px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all ${
                 currentIndex > 0
-                  ? 'border-amber-300 dark:border-amber-700/80 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 hover:bg-amber-100 cursor-pointer shadow-xs'
+                  ? 'border-indigo-300 dark:border-indigo-700/80 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 cursor-pointer shadow-xs'
                   : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50'
               }`}
             >
@@ -303,7 +405,7 @@ export const SwipePage: React.FC = () => {
               id="btn-toggle-filters"
               type="button"
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer ${
                 isFilterOpen
                   ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                   : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -337,7 +439,7 @@ export const SwipePage: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 dark:text-white font-serif">
+                    <span className="font-bold text-slate-900 dark:text-white">
                       Swipe-Trained Recommendations
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">
@@ -359,7 +461,7 @@ export const SwipePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('history')}
-                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 self-start sm:self-auto shrink-0"
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 self-start sm:self-auto shrink-0 cursor-pointer"
               >
                 <span>View Full Swipe History</span>
                 <ArrowRight className="w-3 h-3" />
@@ -383,11 +485,25 @@ export const SwipePage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {toastNotification.job && !appliedJobIds.has(toastNotification.job.id) && toastNotification.message.includes('Interested') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (toastNotification.job) {
+                      handleApplyClick(toastNotification.job);
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>Apply Now</span>
+                </button>
+              )}
               {toastNotification.canUndo && currentIndex > 0 && (
                 <button
                   type="button"
                   onClick={handleUndo}
-                  className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition-colors"
+                  className="px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition-colors"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>Undo</span>
@@ -407,10 +523,10 @@ export const SwipePage: React.FC = () => {
 
       {/* Expandable Filter Drawer */}
       {isFilterOpen && (
-        <div className="p-5 rounded-3xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+        <div className="p-5 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2 font-serif">
+              <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2 font-display">
                 Minimum Match Score: {minScore}%
               </label>
               <input
@@ -430,7 +546,7 @@ export const SwipePage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2 font-serif">
+              <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2 font-display">
                 Work Mode
               </label>
               <div className="flex flex-wrap gap-2">
@@ -439,7 +555,7 @@ export const SwipePage: React.FC = () => {
                     key={type}
                     type="button"
                     onClick={() => setSelectedWorkType(type)}
-                    className={`px-3.5 py-1 text-xs rounded-full font-semibold transition-all ${
+                    className={`px-3.5 py-1 text-xs rounded-full font-semibold transition-all cursor-pointer ${
                       selectedWorkType === type
                         ? 'bg-indigo-600 text-white shadow-xs'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 border border-slate-200 dark:border-slate-700'
@@ -455,34 +571,34 @@ export const SwipePage: React.FC = () => {
       )}
 
       {/* Main Swipe Deck Canvas */}
-      <div className="flex flex-col items-center justify-center min-h-[580px]">
+      <div className="flex flex-col items-center justify-center min-h-[490px] -mt-1 sm:-mt-2">
         {isLoading ? (
-          <div className="text-center py-28 space-y-5">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto" />
-            <p className="text-lg font-serif font-bold text-slate-900 dark:text-white">
+          <div className="text-center py-24 space-y-4">
+            <Loader2 className="w-10 h-10 text-violet-600 animate-spin mx-auto" />
+            <p className="text-base font-display font-bold text-slate-900 dark:text-white">
               AI Recommendation Agent Ranking Verified Roles...
             </p>
-            <p className="text-sm text-slate-500">
+            <p className="text-xs text-slate-500">
               Scoring candidate profile against 1,048 real jobs with behavioral keyword adjustment.
             </p>
           </div>
         ) : error ? (
-          <div className="text-center py-16 space-y-4 max-w-md bg-white dark:bg-[#1E293B] p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="text-center py-12 space-y-4 max-w-md bg-white dark:bg-[#151D2A] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <p className="text-sm font-semibold text-rose-600">{error}</p>
             <button
               onClick={fetchRecommendations}
-              className="px-6 py-2.5 rounded-2xl bg-indigo-600 text-white text-xs font-bold shadow-xs hover:bg-indigo-700 transition-colors"
+              className="px-6 py-2 rounded-2xl bg-violet-600 text-white text-xs font-bold shadow-xs hover:bg-violet-700 transition-colors"
             >
               Retry Discovery
             </button>
           </div>
         ) : currentRecommendation ? (
-          <div className="w-full flex flex-col items-center space-y-6">
+          <div className="w-full flex flex-col items-center space-y-4">
             {/* Deck Progress Indicator & Deck Controls Header */}
             <div className="flex flex-wrap items-center justify-between w-full max-w-2xl px-3 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-indigo-500" />
+                  <Layers className="w-4 h-4 text-violet-500" />
                   <span>
                     Card <strong className="text-slate-900 dark:text-white font-bold">{currentIndex + 1}</strong> of{' '}
                     <strong className="text-slate-900 dark:text-white font-bold">{filteredDeck.length}</strong>
@@ -490,7 +606,7 @@ export const SwipePage: React.FC = () => {
                 </div>
 
                 {currentIndex > 0 && (
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 font-bold border border-orange-200 dark:border-orange-800">
                     {currentIndex} swiped
                   </span>
                 )}
@@ -546,12 +662,12 @@ export const SwipePage: React.FC = () => {
           </div>
         ) : (
           /* Empty State */
-          <div className="text-center py-16 space-y-6 max-w-lg bg-white dark:bg-[#1E293B] p-8 sm:p-12 rounded-[36px] border border-slate-200 dark:border-slate-800 shadow-xl">
+          <div className="text-center py-16 space-y-6 max-w-lg bg-white dark:bg-[#151D2A] p-8 sm:p-12 rounded-[36px] border border-slate-200 dark:border-slate-800 shadow-xl">
             <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-sm">
               <CheckCircle2 className="w-9 h-9" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white font-serif">
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white font-display">
                 You've Reviewed All Top Matches!
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -565,9 +681,9 @@ export const SwipePage: React.FC = () => {
                   id="btn-empty-state-undo"
                   type="button"
                   onClick={handleUndo}
-                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-bold text-xs hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-all flex items-center justify-center gap-2 shadow-sm"
+                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-orange-50 dark:bg-orange-950/60 border border-orange-300 dark:border-orange-700 text-orange-800 dark:text-orange-300 font-bold text-xs hover:bg-orange-100 dark:hover:bg-orange-900/60 transition-all flex items-center justify-center gap-2 shadow-sm"
                 >
-                  <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <RotateCcw className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   <span>Undo Last Dismissal</span>
                 </button>
               )}
@@ -575,7 +691,7 @@ export const SwipePage: React.FC = () => {
               <button
                 type="button"
                 onClick={fetchRecommendations}
-                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" /> Load Next 40 Job Matches
               </button>
@@ -594,7 +710,7 @@ export const SwipePage: React.FC = () => {
       </>
       )}
 
-      {/* Split View Drawer (Screenshot 172) */}
+      {/* Split View Drawer */}
       {selectedDrawerJob && (
         <JobDetailDrawer
           job={selectedDrawerJob}
@@ -602,8 +718,7 @@ export const SwipePage: React.FC = () => {
           isOpen={!!selectedDrawerJob}
           onClose={() => setSelectedDrawerJob(null)}
           onApply={(job) => {
-            setSelectedDrawerJob(null);
-            handleSwipeRight(job);
+            handleApplyClick(job);
           }}
           onSwipeLeft={(job) => {
             setSelectedDrawerJob(null);
@@ -615,6 +730,8 @@ export const SwipePage: React.FC = () => {
           }}
           onSave={handleSaveJob}
           isSaved={savedJobIds.has(selectedDrawerJob.id)}
+          isSubmitting={submittingJobId === selectedDrawerJob.id}
+          isApplied={appliedJobIds.has(selectedDrawerJob.id)}
         />
       )}
 
@@ -628,10 +745,30 @@ export const SwipePage: React.FC = () => {
             setCurrentIndex((prev) => prev + 1);
           }}
           onAppliedSuccess={() => {
-            // Callback
+            setAppliedJobIds((prev) => new Set(prev).add(activeApplyingJob.id));
           }}
         />
       )}
+
+      {/* Application Success Confirmation Modal */}
+      {submittedSuccessData && (
+        <ApplicationSuccessModal
+          isOpen={!!submittedSuccessData}
+          onClose={() => setSubmittedSuccessData(null)}
+          job={submittedSuccessData.job}
+          application={submittedSuccessData.application}
+        />
+      )}
+
+      {/* Alert & Validation Modals */}
+      <ApplicationAlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
+        type={alertModal.type}
+        jobTitle={alertModal.jobTitle}
+        companyName={alertModal.companyName}
+        message={alertModal.message}
+      />
     </div>
   );
 };

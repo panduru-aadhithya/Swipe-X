@@ -33,13 +33,20 @@ export const jobController = {
       offset: offset ? parseInt(offset as string, 10) : 0
     });
 
+    let appliedJobIds: string[] = [];
+    if (req.candidateProfile) {
+      const userApps = applicationRepository.findByCandidate(req.candidateProfile.id);
+      appliedJobIds = userApps.map(a => a.jobId);
+    }
+
     res.json({
       success: true,
       data: {
         jobs: result.jobs,
         total: result.total,
         limit: limit ? parseInt(limit as string, 10) : 50,
-        offset: offset ? parseInt(offset as string, 10) : 0
+        offset: offset ? parseInt(offset as string, 10) : 0,
+        appliedJobIds
       }
     });
   },
@@ -59,6 +66,7 @@ export const jobController = {
     let matchInfo = undefined;
     let isSaved = false;
     let applicationStatus = undefined;
+    let application = undefined;
 
     if (req.candidateProfile) {
       const activeResume = resumeRepository.findActiveByCandidateId(req.candidateProfile.id);
@@ -67,7 +75,10 @@ export const jobController = {
       isSaved = savedJobRepository.isSaved(req.candidateProfile.id, job.id);
       
       const app = applicationRepository.findByCandidateAndJob(req.candidateProfile.id, job.id);
-      if (app) applicationStatus = app.status;
+      if (app) {
+        applicationStatus = app.status;
+        application = app;
+      }
     }
 
     res.json({
@@ -76,7 +87,8 @@ export const jobController = {
         job,
         matchInfo,
         isSaved,
-        applicationStatus
+        applicationStatus,
+        application
       }
     });
   },

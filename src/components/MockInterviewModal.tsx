@@ -214,7 +214,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
 
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -228,14 +228,14 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
               {/* Question Progress & Category */}
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400 font-serif">
+                  <span className="font-bold text-violet-600 dark:text-violet-400 font-display">
                     Question {currentIndex + 1} of {questions.length}
                   </span>
                   <span className="text-slate-300 dark:text-slate-700">•</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 font-semibold text-[10px] border border-purple-200 dark:border-purple-800">
+                  <span className="px-2.5 py-0.5 rounded-full bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-300 font-semibold text-[10px] border border-violet-200 dark:border-violet-800 font-display">
                     {currentQ?.category || 'TECHNICAL'}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 font-semibold text-[10px] border border-amber-200 dark:border-amber-800">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 font-semibold text-[10px] border border-amber-200 dark:border-amber-800 font-display">
                     {currentQ?.difficulty || 'Medium'}
                   </span>
                 </div>
@@ -243,7 +243,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                 {/* Progress bar */}
                 <div className="w-28 sm:w-40 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300"
+                    className="h-full bg-violet-600 transition-all duration-300"
                     style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
                   />
                 </div>
@@ -251,16 +251,16 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
 
               {/* Question Card */}
               <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#0F172A] border border-slate-200/90 dark:border-slate-800 space-y-3">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-serif leading-relaxed">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-display leading-relaxed">
                   "{currentQ?.question}"
                 </h3>
 
                 {/* STAR Guidance Pill */}
                 {currentQ?.starGuidance && showStarGuidance && (
-                  <div className="p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 text-xs text-indigo-900 dark:text-indigo-200 flex items-start gap-2.5">
-                    <Lightbulb className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                  <div className="p-3 rounded-xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/50 text-xs text-violet-900 dark:text-violet-200 flex items-start gap-2.5">
+                    <Lightbulb className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" />
                     <div>
-                      <strong className="font-semibold block mb-0.5">STAR Framework Recommendation:</strong>
+                      <strong className="font-semibold block mb-0.5 font-display">STAR Framework Recommendation:</strong>
                       <span>{currentQ.starGuidance}</span>
                     </div>
                   </div>
@@ -272,7 +272,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowHint(!showHint)}
-                      className="text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 flex items-center gap-1 font-semibold"
+                      className="text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-300 flex items-center gap-1 font-semibold cursor-pointer font-display"
                     >
                       <HelpCircle className="w-3.5 h-3.5" />
                       {showHint ? 'Hide Hints' : 'Show AI Key Concept Hints'}
@@ -297,7 +297,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
               {!currentQ?.feedback ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 font-serif flex items-center gap-2">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 font-display flex items-center gap-2">
                       <span>Your Response</span>
                       <span className="text-[10px] text-slate-400 font-normal">
                         (Speak aloud or type your answer)
@@ -307,10 +307,10 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                     <button
                       type="button"
                       onClick={handleVoiceInputMock}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer font-display ${
                         isListening
                           ? 'bg-rose-500 text-white animate-pulse'
-                          : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800'
+                          : 'bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 hover:bg-violet-100 border border-violet-200 dark:border-violet-800'
                       }`}
                     >
                       {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
@@ -323,7 +323,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                     value={currentResponse}
                     onChange={(e) => setCurrentResponse(e.target.value)}
                     placeholder="Structure your answer clearly. E.g. 'In my recent role, our system faced a challenge where... I led the initiative to... As a result, we improved...'"
-                    className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400"
+                    className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none placeholder-slate-400"
                   />
 
                   <div className="flex items-center justify-between pt-2">
@@ -332,7 +332,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                         <button
                           type="button"
                           onClick={handlePrev}
-                          className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 flex items-center gap-1"
+                          className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 flex items-center gap-1 cursor-pointer font-display"
                         >
                           <ChevronLeft className="w-4 h-4" /> Previous
                         </button>
@@ -343,11 +343,11 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                       type="button"
                       onClick={handleSubmitResponse}
                       disabled={isEvaluating || !currentResponse.trim()}
-                      className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-md flex items-center gap-2 disabled:opacity-50 transition-all hover:scale-105"
+                      className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50 transition-all cursor-pointer"
                     >
                       {isEvaluating ? (
                         <>
-                          <Sparkles className="w-4 h-4 animate-spin" /> Evaluating with Swipe X AI...
+                          <Sparkles className="w-4 h-4 animate-spin text-white" /> Evaluating with Swipe X AI...
                         </>
                       ) : (
                         <>
@@ -363,11 +363,11 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                   <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-500/30 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+                        <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm font-mono">
                           {currentQ.feedback.overallScore}%
                         </div>
                         <div>
-                          <span className="font-serif font-black text-sm text-emerald-900 dark:text-emerald-200">
+                          <span className="font-display font-extrabold text-sm text-emerald-900 dark:text-emerald-200">
                             AI Answer Evaluation
                           </span>
                           <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
@@ -376,7 +376,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex gap-2 text-xs">
+                      <div className="flex gap-2 text-xs font-mono">
                         <span className="px-2.5 py-1 rounded-lg bg-white/80 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 font-bold">
                           Clarity: {currentQ.feedback.clarityScore}%
                         </span>
@@ -388,7 +388,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
 
                     {/* Key Strengths */}
                     <div className="space-y-1.5">
-                      <h5 className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5 font-serif">
+                      <h5 className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5 font-display">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Strengths Identified
                       </h5>
                       <ul className="space-y-1">
@@ -404,7 +404,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                     {/* Improvement suggestions */}
                     {currentQ.feedback.improvementSuggestions.length > 0 && (
                       <div className="space-y-1.5 pt-2 border-t border-emerald-500/20">
-                        <h5 className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 font-serif">
+                        <h5 className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 font-display">
                           <Lightbulb className="w-3.5 h-3.5 text-amber-600" /> Suggestions for Real Interview
                         </h5>
                         <ul className="space-y-1">
@@ -428,7 +428,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                         updated[currentIndex].feedback = undefined;
                         setQuestions(updated);
                       }}
-                      className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 flex items-center gap-1.5 cursor-pointer font-display"
                     >
                       <RotateCcw className="w-3.5 h-3.5" /> Re-record / Edit Response
                     </button>
@@ -437,7 +437,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                       <button
                         type="button"
                         onClick={handleNext}
-                        className="px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md flex items-center gap-2"
+                        className="px-6 py-2.5 rounded-full bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-xs flex items-center gap-2 cursor-pointer font-display"
                       >
                         Next Question <ArrowRight className="w-4 h-4" />
                       </button>
@@ -445,7 +445,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setCompleted(true)}
-                        className="px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md flex items-center gap-2"
+                        className="px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs flex items-center gap-2 cursor-pointer font-display"
                       >
                         Complete Session <Award className="w-4 h-4" />
                       </button>
@@ -457,16 +457,16 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
           ) : (
             /* Session Completed Summary View */
             <div className="text-center py-6 space-y-6 animate-fadeIn">
-              <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-600 text-white flex items-center justify-center mx-auto shadow-lg text-2xl font-black">
+              <div className="w-16 h-16 rounded-3xl bg-amber-500 text-white flex items-center justify-center mx-auto shadow-lg text-2xl font-black">
                 🏆
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white font-serif">
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white font-display">
                   Mock Interview Completed!
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                  You successfully practiced key questions for <strong className="text-slate-800 dark:text-slate-200">{roleTitle}</strong> at <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{companyName}</span>.
+                  You successfully practiced key questions for <strong className="text-slate-800 dark:text-slate-200">{roleTitle}</strong> at <span className="text-violet-600 dark:text-violet-400 font-semibold">{companyName}</span>.
                 </p>
               </div>
 
@@ -475,7 +475,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                 <div className="flex items-center gap-3">
                   <Zap className="w-6 h-6 text-amber-500 fill-amber-500" />
                   <div>
-                    <span className="text-xs font-bold text-amber-900 dark:text-amber-200 block font-serif">
+                    <span className="text-xs font-bold text-amber-900 dark:text-amber-200 block font-display">
                       + {earnedXp} Career XP Awarded!
                     </span>
                     <span className="text-[11px] text-amber-700 dark:text-amber-400">
@@ -483,22 +483,22 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                     </span>
                   </div>
                 </div>
-                <span className="text-lg font-black text-amber-600">⚡ +{earnedXp}</span>
+                <span className="text-lg font-black text-amber-600 font-mono">⚡ +{earnedXp}</span>
               </div>
 
               {/* Performance Radar Cards */}
               <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Clarity</span>
-                  <span className="text-lg font-black text-indigo-600 font-serif">92%</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block font-display">Clarity</span>
+                  <span className="text-lg font-black text-violet-600 font-mono">92%</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Tech Depth</span>
-                  <span className="text-lg font-black text-purple-600 font-serif">89%</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block font-display">Tech Depth</span>
+                  <span className="text-lg font-black text-orange-500 font-mono">89%</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">STAR Fit</span>
-                  <span className="text-lg font-black text-emerald-600 font-serif">94%</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block font-display">STAR Fit</span>
+                  <span className="text-lg font-black text-emerald-600 font-mono">94%</span>
                 </div>
               </div>
 
@@ -506,7 +506,7 @@ export const MockInterviewModal: React.FC<MockInterviewModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-2.5 rounded-full bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md transition-all"
+                  className="px-6 py-2.5 rounded-full bg-violet-600 hover:bg-violet-700 text-white text-xs sm:text-sm font-bold shadow-xs transition-all font-display cursor-pointer"
                 >
                   Return to Job Market Flow
                 </button>

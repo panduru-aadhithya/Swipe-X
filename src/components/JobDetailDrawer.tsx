@@ -18,7 +18,9 @@ import {
   Clock,
   Layers,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Send,
+  Loader2
 } from 'lucide-react';
 import { Job, JobRecommendation } from '../types';
 import { MatchBadge } from './MatchBadge';
@@ -33,6 +35,8 @@ interface JobDetailDrawerProps {
   onSwipeRight?: (job: Job) => void;
   onSave?: (job: Job) => void;
   isSaved?: boolean;
+  isSubmitting?: boolean;
+  isApplied?: boolean;
 }
 
 export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
@@ -44,7 +48,9 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
   onSwipeLeft,
   onSwipeRight,
   onSave,
-  isSaved = false
+  isSaved = false,
+  isSubmitting = false,
+  isApplied = false
 }) => {
   if (!job) return null;
 
@@ -75,12 +81,12 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-            className="relative w-full max-w-4xl bg-[#F8F9FB] dark:bg-[#0F172A] text-[#1E293B] dark:text-[#F8FAFC] shadow-2xl z-10 flex flex-col h-full overflow-hidden border-l border-slate-200 dark:border-slate-800"
+            className="relative w-full max-w-4xl bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-white shadow-2xl z-10 flex flex-col h-full overflow-hidden border-l border-slate-200 dark:border-slate-800"
           >
             {/* Top Bar Header */}
-            <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1E293B] flex items-center justify-between gap-4 shrink-0">
+            <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#151D2A] flex items-center justify-between gap-4 shrink-0">
               <div className="flex items-center gap-3">
-                <div className={`w-11 h-11 rounded-2xl ${companyColor} text-white flex items-center justify-center font-serif font-bold text-lg shadow-sm`}>
+                <div className={`w-11 h-11 rounded-2xl ${companyColor} text-white flex items-center justify-center font-display font-bold text-lg shadow-sm`}>
                   {job.company.charAt(0)}
                 </div>
                 <div>
@@ -91,7 +97,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                     <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Verified Posting</span>
                   </div>
-                  <h2 className="text-base sm:text-lg font-bold font-serif text-slate-900 dark:text-white leading-tight">
+                  <h2 className="text-base sm:text-lg font-bold font-display text-slate-900 dark:text-white leading-tight">
                     {job.title}
                   </h2>
                 </div>
@@ -103,7 +109,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     type="button"
                     onClick={() => onSave(job)}
                     title="Save Job"
-                    className={`p-2.5 rounded-full border transition-all ${
+                    className={`p-2.5 rounded-full border transition-all cursor-pointer ${
                       isSaved
                         ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
                         : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -116,7 +122,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-2.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="p-2.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -130,7 +136,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
               <div className="lg:col-span-8 space-y-6">
                 
                 {/* Highlights Banner */}
-                <div className="p-5 rounded-3xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+                <div className="p-5 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 shadow-2xs space-y-4">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60">
                       {job.workType}
@@ -138,7 +144,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     <span className="text-xs font-medium px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                       {job.employmentType}
                     </span>
-                    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+                    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 font-mono">
                       {formattedSalary}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-slate-400 ml-auto flex items-center gap-1">
@@ -150,7 +156,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     <div className="p-4 rounded-2xl bg-indigo-500/10 dark:bg-indigo-900/20 border border-indigo-500/20 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5" /> AI Recommendation Score: {recommendation.matchScore}%
+                          <Sparkles className="w-3.5 h-3.5 text-indigo-500" /> AI Recommendation Score: {recommendation.matchScore}%
                         </span>
                         <MatchBadge score={recommendation.matchScore} size="sm" />
                       </div>
@@ -162,8 +168,8 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                 </div>
 
                 {/* Extracted Skills */}
-                <div className="p-5 rounded-3xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
-                  <h3 className="text-sm font-bold font-serif text-slate-900 dark:text-white flex items-center gap-2">
+                <div className="p-5 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Layers className="w-4 h-4 text-indigo-500" />
                     Required Technical Skills
                   </h3>
@@ -187,8 +193,8 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                 </div>
 
                 {/* Full Description */}
-                <div className="p-6 rounded-3xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
-                  <h3 className="text-base font-bold font-serif text-slate-900 dark:text-white">
+                <div className="p-6 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 shadow-2xs space-y-4">
+                  <h3 className="text-base font-bold font-display text-slate-900 dark:text-white">
                     Role Description & Impact
                   </h3>
                   <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line space-y-4">
@@ -200,37 +206,58 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
               {/* Right Column: Company & Job Facts (4 Cols) */}
               <div className="lg:col-span-4 space-y-5">
                 
-                {/* Company Overview Card (from Screenshot 172) */}
-                <div className="p-6 rounded-3xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-xs text-center space-y-4">
-                  <div className={`w-16 h-16 rounded-3xl ${companyColor} text-white text-2xl font-serif font-bold flex items-center justify-center mx-auto shadow-md`}>
+                {/* Company Overview Card */}
+                <div className="p-6 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 shadow-2xs text-center space-y-4">
+                  <div className={`w-16 h-16 rounded-3xl ${companyColor} text-white text-2xl font-display font-bold flex items-center justify-center mx-auto shadow-md`}>
                     {job.company.charAt(0)}
                   </div>
                   <div>
-                    <h4 className="text-base font-bold text-slate-900 dark:text-white font-serif">
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white font-display">
                       {job.company}
                     </h4>
                     <a
                       href={job.link || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline inline-flex items-center gap-1 mt-1"
+                      className="text-xs text-violet-600 dark:text-violet-400 font-semibold hover:underline inline-flex items-center gap-1 mt-1 font-display"
                     >
                       <Globe className="w-3.5 h-3.5" /> Visit Website
                     </a>
                   </div>
 
-                  {/* Primary Purple Action Button */}
+                  {/* Primary Action Button */}
                   <button
                     id="btn-drawer-apply-position"
                     type="button"
+                    disabled={isSubmitting || isApplied}
                     onClick={() => onApply(job)}
-                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                    className={`w-full py-3.5 rounded-2xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 ${
+                      isApplied
+                        ? 'bg-emerald-600 text-white cursor-default'
+                        : isSubmitting
+                        ? 'bg-indigo-400 text-white cursor-wait'
+                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white hover:shadow-lg active:scale-98 cursor-pointer'
+                    }`}
                   >
-                    <Heart className="w-4 h-4 fill-white" />
-                    Apply for this Position
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Submitting Application...</span>
+                      </>
+                    ) : isApplied ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>✓ Application Submitted</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Apply Now</span>
+                      </>
+                    )}
                   </button>
 
-                  {/* Direct Swipe Action Helpers (User requirement: Explicit arrows & instructions) */}
+                  {/* Direct Swipe Action Helpers */}
                   {(onSwipeLeft || onSwipeRight) && (
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                       {onSwipeLeft && (
@@ -240,7 +267,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                             onSwipeLeft(job);
                             onClose();
                           }}
-                          className="px-3 py-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-[11px] font-bold hover:bg-rose-100 flex items-center justify-center gap-1 transition-colors"
+                          className="px-3 py-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-[11px] font-bold hover:bg-rose-100 flex items-center justify-center gap-1 transition-colors cursor-pointer font-display"
                         >
                           <ArrowLeft className="w-3 h-3" /> Swipe Left (Pass)
                         </button>
@@ -252,7 +279,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                             onSwipeRight(job);
                             onClose();
                           }}
-                          className="px-3 py-2 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold hover:bg-emerald-100 flex items-center justify-center gap-1 transition-colors"
+                          className="px-3 py-2 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold hover:bg-emerald-100 flex items-center justify-center gap-1 transition-colors cursor-pointer font-display"
                         >
                           Swipe Right (Like) <ArrowRight className="w-3 h-3" />
                         </button>
@@ -261,29 +288,29 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   )}
                 </div>
 
-                {/* Job Metadata Table (from Screenshot 172) */}
-                <div className="p-5 rounded-3xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-xs space-y-3.5 text-xs">
+                {/* Job Metadata Table */}
+                <div className="p-5 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3.5 text-xs">
                   <div>
-                    <span className="text-slate-400 dark:text-slate-500 font-medium block">Job Type</span>
+                    <span className="text-slate-400 dark:text-slate-500 font-medium block font-display">Job Type</span>
                     <span className="font-bold text-slate-800 dark:text-slate-200">{job.employmentType}</span>
                   </div>
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-400 dark:text-slate-500 font-medium block">Location</span>
+                    <span className="text-slate-400 dark:text-slate-500 font-medium block font-display">Location</span>
                     <span className="font-bold text-slate-800 dark:text-slate-200">{job.location} ({job.workType})</span>
                   </div>
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-400 dark:text-slate-500 font-medium block">Date posted</span>
+                    <span className="text-slate-400 dark:text-slate-500 font-medium block font-display">Date posted</span>
                     <span className="font-bold text-slate-800 dark:text-slate-200">{job.datePosted}</span>
                   </div>
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-400 dark:text-slate-500 font-medium block">Experience level</span>
+                    <span className="text-slate-400 dark:text-slate-500 font-medium block font-display">Experience level</span>
                     <span className="font-bold text-slate-800 dark:text-slate-200">Senior / Lead Engineer</span>
                   </div>
                 </div>
 
                 {/* You might also like / Job Categories */}
-                <div className="p-5 rounded-3xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block font-serif">
+                <div className="p-5 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block font-display">
                     Job Categories
                   </span>
                   <div className="flex flex-wrap gap-1.5">

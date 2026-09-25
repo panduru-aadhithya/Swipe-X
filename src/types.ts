@@ -1,11 +1,12 @@
-export type UserRole = 'CANDIDATE' | 'RECRUITER' | 'ADMIN';
+export type UserRole = 'CANDIDATE' | 'RECRUITER';
 
 export type WorkType = 'Remote' | 'Hybrid' | 'On-site';
 export type EmploymentType = 'Full-time' | 'Contract' | 'Part-time' | 'Internship';
 export type CompanyType = 'MNC' | 'Startup' | 'Newly Founded' | 'Enterprise';
 export type CompetitionLevel = 'Low' | 'Medium' | 'High';
 
-export type SwipeDecisionType = 'LEFT' | 'SAVE' | 'RIGHT';
+export type SwipeActionType = 'right_swipe' | 'left_swipe' | 'save_swipe';
+export type SwipeDecisionType = 'LEFT' | 'SAVE' | 'RIGHT' | 'left_swipe' | 'right_swipe';
 
 export type ApplicationStatus = 
   | 'APPLIED'
@@ -261,12 +262,29 @@ export interface JobRecommendation {
 
 export interface SwipeDecision {
   id: string;
+  userId?: string;
   candidateProfileId: string;
   jobId: string;
+  action?: SwipeActionType;
   decision: SwipeDecisionType;
+  timestamp?: string;
   createdAt: string;
+
+  // Job snapshot attributes at time of swipe
+  jobTitle?: string;
+  company?: string;
+  skills?: string[];
+  location?: string;
+  employmentType?: string;
+  experienceLevel?: string;
+  salary?: string;
+  jobCategory?: string;
+
   job?: Job;
   applied?: boolean;
+  applicationId?: string;
+  applicationStatus?: ApplicationStatus | string;
+  appliedDate?: string;
 }
 
 export interface BehavioralProfile {
@@ -339,6 +357,24 @@ export interface Application {
     timestamp: string;
     note?: string;
   }>;
+}
+
+export function formatApplicationId(appOrId?: Application | string | null): string {
+  if (!appOrId) return 'SWX-2026-00125';
+  const idStr = typeof appOrId === 'string' ? appOrId : appOrId.id;
+  if (!idStr) return 'SWX-2026-00125';
+  if (idStr.startsWith('SWX-')) return idStr;
+  if (idStr.startsWith('app_demo_')) {
+    const num = idStr.replace('app_demo_', '');
+    return `SWX-2026-0010${num}`;
+  }
+  let hash = 0;
+  for (let i = 0; i < idStr.length; i++) {
+    hash = ((hash << 5) - hash) + idStr.charCodeAt(i);
+    hash |= 0;
+  }
+  const positive = Math.abs(hash) % 90000 + 10000;
+  return `SWX-2026-${positive}`;
 }
 
 export interface MockInterviewQuestion {

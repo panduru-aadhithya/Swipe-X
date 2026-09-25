@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  Flame, 
   Briefcase, 
+  Flame,
+  LayoutDashboard,
   Sparkles,
   FileCheck, 
   Bookmark
@@ -23,17 +24,17 @@ export const MobileBottomNav: React.FC = () => {
     {
       to: '/candidate/swipe',
       label: 'Swipe',
-      icon: <Flame className="w-5 h-5 text-emerald-500" />
+      icon: <Flame className="w-5 h-5 text-indigo-500" />
     },
     {
-      to: '/candidate/interview',
-      label: 'Interview',
-      icon: <Sparkles className="w-5 h-5 text-purple-500" />
+      to: '/candidate/applications',
+      label: 'Applied',
+      icon: <Briefcase className="w-5 h-5 text-emerald-500" />
     },
     {
       to: '/candidate/ats',
-      label: 'ATS',
-      icon: <FileCheck className="w-5 h-5 text-blue-500" />
+      label: 'ATS Scanner',
+      icon: <FileCheck className="w-5 h-5 text-teal-500" />
     },
     {
       to: '/candidate/saved-jobs',
@@ -52,7 +53,7 @@ export const MobileBottomNav: React.FC = () => {
             className={({ isActive }) =>
               `flex flex-col items-center justify-center min-h-[48px] py-1.5 px-3 rounded-2xl transition-all ${
                 isActive
-                  ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50/60 dark:bg-indigo-950/40'
+                  ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50/80 dark:bg-indigo-950/40'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`
             }

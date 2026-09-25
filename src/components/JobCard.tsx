@@ -108,17 +108,17 @@ export const JobCard: React.FC<JobCardProps> = ({
 
   if (isBackgroundCard) {
     return (
-      <div className="w-full max-w-2xl bg-white/90 dark:bg-[#1E293B]/90 rounded-[38px] border border-slate-200/60 dark:border-slate-800/60 shadow-md overflow-hidden pointer-events-none select-none">
-        <div className="h-32 sm:h-36 bg-slate-800 dark:bg-slate-900 p-7 opacity-60" />
+      <div className="w-full max-w-2xl bg-white/90 dark:bg-[#151D2A]/90 rounded-[36px] border border-slate-200/60 dark:border-slate-800/60 shadow-md overflow-hidden pointer-events-none select-none">
+        <div className="h-32 sm:h-36 bg-slate-900 dark:bg-slate-950 p-7 opacity-60" />
         <div className="p-7 sm:p-9 pt-0 relative -mt-10 space-y-5 opacity-75">
           <div className="flex items-end justify-between gap-4">
-            <div className={`w-18 h-18 rounded-2xl ${companyBg} text-white border-4 border-white dark:border-[#1E293B] shadow flex items-center justify-center text-2xl font-bold font-serif`}>
+            <div className={`w-18 h-18 rounded-2xl ${companyBg} text-white border-4 border-white dark:border-[#151D2A] shadow flex items-center justify-center text-2xl font-bold`}>
               {job.company.charAt(0)}
             </div>
             <MatchBadge score={matchScore} size="lg" />
           </div>
           <div>
-            <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white leading-snug">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white leading-snug">
               {job.title}
             </h2>
             <div className="text-xs text-slate-500 mt-1">
@@ -149,14 +149,14 @@ export const JobCard: React.FC<JobCardProps> = ({
             }
           : undefined
       }
-      className="relative w-full max-w-2xl bg-white dark:bg-[#1E293B] rounded-[38px] border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden cursor-grab active:cursor-grabbing select-none transition-shadow hover:shadow-2xl touch-pan-y"
+      className="relative w-full max-w-2xl bg-white dark:bg-[#151D2A] rounded-[36px] border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden cursor-grab active:cursor-grabbing select-none transition-shadow hover:shadow-2xl touch-pan-y"
     >
       {/* Swipe Feedback Overlay Indicators */}
       {isInteractiveSwipe && (
         <>
           <motion.div
             style={{ opacity: rightIndicatorOpacity, scale: rightIndicatorScale }}
-            className="absolute top-8 right-6 z-30 px-5 py-2.5 rounded-2xl bg-emerald-600 text-white font-serif font-bold text-xs sm:text-sm tracking-wider border-2 border-white shadow-2xl pointer-events-none rotate-12 flex items-center gap-2"
+            className="absolute top-8 right-6 z-30 px-5 py-2.5 rounded-2xl bg-emerald-600 text-white font-bold text-xs sm:text-sm tracking-wider border-2 border-white shadow-2xl pointer-events-none rotate-12 flex items-center gap-2"
           >
             <Heart className="w-5 h-5 fill-white" />
             <span>INTERESTED • SWIPE RIGHT</span>
@@ -164,7 +164,7 @@ export const JobCard: React.FC<JobCardProps> = ({
 
           <motion.div
             style={{ opacity: leftIndicatorOpacity, scale: leftIndicatorScale }}
-            className="absolute top-8 left-6 z-30 px-5 py-2.5 rounded-2xl bg-rose-600 text-white font-serif font-bold text-xs sm:text-sm tracking-wider border-2 border-white shadow-2xl pointer-events-none -rotate-12 flex items-center gap-2"
+            className="absolute top-8 left-6 z-30 px-5 py-2.5 rounded-2xl bg-rose-600 text-white font-bold text-xs sm:text-sm tracking-wider border-2 border-white shadow-2xl pointer-events-none -rotate-12 flex items-center gap-2"
           >
             <X className="w-5 h-5" />
             <span>NOT INTERESTED • SWIPE LEFT</span>
@@ -173,7 +173,7 @@ export const JobCard: React.FC<JobCardProps> = ({
       )}
 
       {/* Top Banner Gradient */}
-      <div className="h-32 sm:h-36 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 dark:from-slate-950 dark:via-indigo-950 dark:to-slate-950 p-6 sm:p-7 relative flex items-start justify-between text-white/90">
+      <div className="h-32 sm:h-36 bg-gradient-to-r from-slate-950 via-[#1E1B4B] to-slate-950 p-6 sm:p-7 relative flex items-start justify-between text-white/90">
         <div className="flex items-center gap-2.5">
           <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-white/15 backdrop-blur-md">
             <Briefcase className="w-3.5 h-3.5" /> Source: {job.source}
@@ -203,7 +203,7 @@ export const JobCard: React.FC<JobCardProps> = ({
         
         {/* Header with Company Logo & Match Score */}
         <div className="flex items-end justify-between gap-4">
-          <div className={`w-18 h-18 rounded-2xl ${companyBg} text-white border-4 border-white dark:border-[#1E293B] shadow-lg flex items-center justify-center text-2xl font-bold font-serif`}>
+          <div className={`w-18 h-18 rounded-2xl ${companyBg} text-white border-4 border-white dark:border-[#151D2A] shadow-lg flex items-center justify-center text-2xl font-bold`}>
             {job.company.charAt(0)}
           </div>
           <MatchBadge score={matchScore} size="lg" />
@@ -211,7 +211,19 @@ export const JobCard: React.FC<JobCardProps> = ({
 
         {/* Title & Company info */}
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold font-serif text-slate-900 dark:text-white leading-snug">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
+              {job.employmentType || 'Full-time'}
+            </span>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+              Exp: {job.experienceLevel || job.experienceRequirements || 'Mid-Senior'}
+            </span>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 font-medium">
+              {job.workType}
+            </span>
+          </div>
+
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-snug">
             {job.title}
           </h2>
           <div className="flex flex-wrap items-center gap-2.5 mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
@@ -324,39 +336,51 @@ export const JobCard: React.FC<JobCardProps> = ({
         {/* PRIMARY SWIPE X ACTION BUTTONS */}
         <div className="pt-5 border-t border-slate-100 dark:border-slate-800 space-y-4">
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Left Button: Not Interested (Swipe Left) */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {/* Left Button: Reject (Swipe Left) */}
             <button
               id={`btn-swipe-left-${job.id}`}
               type="button"
               onClick={handleButtonSwipeLeft}
-              title="Swipe Left: Not Interested (or press Left Arrow)"
-              className="w-full py-4 px-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-bold text-sm shadow-xs hover:shadow-md active:scale-98 transition-all flex items-center justify-center gap-2.5 group"
+              title="Swipe Left: Reject (or press Left Arrow)"
+              className="py-3.5 px-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-bold text-xs sm:text-sm shadow-xs hover:shadow-md active:scale-98 transition-all flex items-center justify-center gap-1.5 group cursor-pointer"
             >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1.5 transition-transform" />
-              <span>← Swipe Left (Pass)</span>
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span>← Reject</span>
             </button>
 
-            {/* Right Button: Interested / Apply (Swipe Right) */}
+            {/* Middle Button: View Details */}
+            <button
+              id={`btn-view-details-${job.id}`}
+              type="button"
+              onClick={() => onViewDetails?.(job)}
+              title="View full job description and requirements"
+              className="py-3.5 px-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 font-bold text-xs sm:text-sm shadow-xs hover:shadow-md active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Info className="w-4 h-4 text-indigo-500" />
+              <span>View Details</span>
+            </button>
+
+            {/* Right Button: Interested (Swipe Right) */}
             <button
               id={`btn-swipe-right-${job.id}`}
               type="button"
               onClick={handleButtonSwipeRight}
-              title="Swipe Right: Interested / Apply (or press Right Arrow)"
-              className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg active:scale-98 transition-all flex items-center justify-center gap-2.5 group"
+              title="Swipe Right: Interested (or press Right Arrow)"
+              className="py-3.5 px-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg active:scale-98 transition-all flex items-center justify-center gap-1.5 group cursor-pointer"
             >
-              <span>Swipe Right (Match) →</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+              <span>Interested →</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
 
-          {/* Secondary Utilities: Save and Details */}
+          {/* Secondary Utilities: Save and Keyboard Shortcuts */}
           <div className="flex items-center justify-between px-1 pt-1">
             <button
               id={`btn-save-job-${job.id}`}
               type="button"
               onClick={() => onSave(job)}
-              className={`text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl border transition-all flex items-center gap-2 ${
+              className={`text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl border transition-all flex items-center gap-2 cursor-pointer ${
                 isSaved
                   ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
                   : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -367,9 +391,9 @@ export const JobCard: React.FC<JobCardProps> = ({
             </button>
 
             <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-              <span>Keyboard:</span>
-              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">← Pass</kbd>
-              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">→ Match</kbd>
+              <span className="hidden sm:inline">Keys:</span>
+              <kbd className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">← Reject</kbd>
+              <kbd className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">→ Interested</kbd>
             </div>
           </div>
 

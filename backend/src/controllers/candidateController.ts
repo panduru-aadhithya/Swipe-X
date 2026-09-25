@@ -85,11 +85,13 @@ export const candidateController = {
     const candidateSwipes = swipeRepository.findByCandidate(profile.id);
     const atsReports = atsRepository.findByCandidate(profile.id);
 
-    // Calculate latest or average ATS score
-    let averageAtsScore = resumeData?.atsReadinessScore || 80;
+    // Calculate latest or average ATS score without fake default values
+    let averageAtsScore: number | null = null;
     if (atsReports.length > 0) {
       const sum = atsReports.reduce((acc, r) => acc + r.atsScore, 0);
       averageAtsScore = Math.round(sum / atsReports.length);
+    } else if (resumeData && typeof resumeData.atsReadinessScore === 'number') {
+      averageAtsScore = resumeData.atsReadinessScore;
     }
 
     // Recommendation count
@@ -100,6 +102,7 @@ export const candidateController = {
       data: {
         profileCompletion: profile.profileCompletionScore,
         resumeStatus: activeResume ? 'Ready' : 'Not Uploaded',
+        hasActiveResume: !!activeResume,
         resumeFileName: activeResume?.fileName,
         atsScore: averageAtsScore,
         recommendedJobsCount: recResults.totalAvailable,

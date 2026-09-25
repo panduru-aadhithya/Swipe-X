@@ -3,6 +3,7 @@ import React from 'react';
 export interface SwipeXLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | number;
   showText?: boolean;
+  showSubtitle?: boolean;
   className?: string;
   textClassName?: string;
 }
@@ -10,6 +11,7 @@ export interface SwipeXLogoProps {
 export const SwipeXLogo: React.FC<SwipeXLogoProps> = ({ 
   size = 'md', 
   showText = true,
+  showSubtitle = true,
   className = '',
   textClassName = ''
 }) => {
@@ -20,7 +22,7 @@ export const SwipeXLogo: React.FC<SwipeXLogoProps> = ({
         box: `w-[${size}px] h-[${size}px]`,
         style: { width: `${size}px`, height: `${size}px` },
         text: size >= 40 ? 'text-2xl' : size >= 32 ? 'text-xl' : 'text-base',
-        iconSize: Math.round(size * 0.6)
+        iconSize: Math.round(size * 0.65)
       };
     }
     switch (size) {
@@ -39,103 +41,96 @@ export const SwipeXLogo: React.FC<SwipeXLogoProps> = ({
   const dim = getDimensions();
 
   return (
-    <div className={`flex items-center gap-2.5 select-none ${className}`}>
-      {/* Aerodynamic SwipeX Monogram Badge */}
+    <div className={`flex items-center gap-3 select-none ${className}`}>
+      {/* Swipe X Distinctive Dual-Card & X Spark Icon */}
       <div 
-        className={`relative ${dim.box} rounded-xl bg-gradient-to-br from-[#1E293B] via-[#0F172A] to-[#0A0E1A] p-[1.5px] shadow-sm shrink-0 group transition-transform duration-200 group-hover:scale-105`}
+        className={`relative ${dim.box} rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-purple-600 p-[1.5px] shadow-md shrink-0 group transition-transform duration-200 group-hover:scale-105`}
         style={dim.style}
       >
-        {/* Ambient Gradient Outer Rim */}
-        <div className="absolute -inset-[0.5px] rounded-xl bg-gradient-to-br from-indigo-500/40 via-purple-500/20 to-cyan-400/30 opacity-70 group-hover:opacity-100 transition-opacity blur-[0.5px]" />
-
-        <div className="w-full h-full rounded-[10px] bg-[#0A0E1A] flex items-center justify-center relative overflow-hidden">
-          {/* Subtle Top-Down Radial Sheen */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.28),transparent_70%)]" />
+        <div className="w-full h-full rounded-[14px] bg-slate-950 flex items-center justify-center relative overflow-hidden">
+          {/* Ambient Glow */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 via-transparent to-purple-500/20" />
           
-          {/* Bespoke Geometric SwipeX Icon */}
           <svg 
             viewBox="0 0 36 36" 
             fill="none" 
             xmlns="http://www.w3.org/2000/svg" 
-            className="relative z-10 drop-shadow-[0_1px_4px_rgba(99,102,241,0.35)]"
+            className="relative z-10 drop-shadow-sm"
             style={{ width: `${dim.iconSize}px`, height: `${dim.iconSize}px` }}
           >
             <defs>
-              {/* Primary Forward Swipe Gradient (Electric Indigo to Vivid Cyan) */}
-              <linearGradient id="swipePrimaryGrad" x1="6" y1="30" x2="30" y2="6" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#4F46E5" />
-                <stop offset="45%" stopColor="#6366F1" />
-                <stop offset="80%" stopColor="#38BDF8" />
-                <stop offset="100%" stopColor="#E0F2FE" />
+              <linearGradient id="cardGrad1" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#818CF8" />
+                <stop offset="100%" stopColor="#6366F1" />
               </linearGradient>
-
-              {/* Intersecting Velocity Stroke Gradient (Violet to Indigo) */}
-              <linearGradient id="swipeCrossGrad" x1="6" y1="6" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+              <linearGradient id="cardGrad2" x1="10" y1="6" x2="32" y2="30" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stopColor="#C084FC" />
-                <stop offset="40%" stopColor="#818CF8" />
-                <stop offset="100%" stopColor="#4F46E5" />
+                <stop offset="100%" stopColor="#9333EA" />
               </linearGradient>
-
-              {/* Central Kinetic Flare */}
-              <radialGradient id="sparkGlow" cx="18" cy="18" r="8" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#6366F1" stopOpacity="0" />
-              </radialGradient>
             </defs>
 
-            {/* Back ambient pulse */}
-            <circle cx="18" cy="18" r="6" fill="url(#sparkGlow)" opacity="0.6" />
-
-            {/* Path 1: Primary Ascending Swipe Trail (Bottom-Left to Top-Right) */}
-            {/* Aerodynamic blade with motion curvature */}
-            <path
-              d="M7.5 28.5 C9.8 28.5 13.5 24.5 18 18 C22.5 11.5 26.2 7.5 28.5 7.5"
-              stroke="url(#swipePrimaryGrad)"
-              strokeWidth="3.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            {/* Background angled card */}
+            <rect 
+              x="6" 
+              y="9" 
+              width="18" 
+              height="22" 
+              rx="4" 
+              transform="rotate(-12 6 9)" 
+              fill="url(#cardGrad1)" 
+              opacity="0.6" 
             />
 
-            {/* Path 2: Intersecting Descending Blade (Top-Left to Center Gap) */}
-            <path
-              d="M7.5 7.5 C9.8 7.5 12.8 10.8 15 14"
-              stroke="url(#swipeCrossGrad)"
-              strokeWidth="3.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            {/* Foreground card */}
+            <rect 
+              x="11" 
+              y="7" 
+              width="18" 
+              height="23" 
+              rx="4" 
+              fill="#0F172A" 
+              stroke="url(#cardGrad2)" 
+              strokeWidth="2" 
             />
 
-            {/* Path 3: Intersecting Blade Continuation (Center Gap to Bottom-Right) */}
-            <path
-              d="M21 22 C23.2 25.2 26.2 28.5 28.5 28.5"
-              stroke="url(#swipeCrossGrad)"
-              strokeWidth="3.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            {/* Signature 'X' mark inside card */}
+            <path 
+              d="M16 14 L24 23 M24 14 L16 23" 
+              stroke="#F8FAFC" 
+              strokeWidth="2.5" 
+              strokeLinecap="round" 
             />
-
-            {/* Dynamic Kinetic Motion Sparks on the X */}
-            <circle cx="28.5" cy="7.5" r="1.5" fill="#38BDF8" />
-            <circle cx="7.5" cy="7.5" r="1.2" fill="#C084FC" />
-            <circle cx="18" cy="18" r="1.6" fill="#FFFFFF" />
+            {/* Vibrant green match spark */}
+            <circle cx="26" cy="11" r="2.2" fill="#10B981" />
           </svg>
         </div>
       </div>
 
-      {/* Brand Wordmark (Clean "SwipeX", with "SaaS" removed) */}
+      {/* Brand Wordmark (Swipe X) */}
       {showText && (
-        <div className={`flex items-baseline tracking-tight ${textClassName}`}>
-          <span className={`font-black text-slate-900 dark:text-white ${dim.text} font-serif tracking-tight`}>
-            Swipe
-          </span>
-          <span className={`font-black ${dim.text} font-serif text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 dark:from-indigo-400 dark:via-indigo-300 dark:to-cyan-400 ml-0.5 drop-shadow-xs`}>
-            X
-          </span>
+        <div className={`flex flex-col ${textClassName}`}>
+          <div className="flex items-center gap-1.5 leading-none">
+            <span className={`font-black tracking-tight text-slate-900 dark:text-white ${dim.text} font-serif`}>
+              Swipe
+            </span>
+            <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 text-xl sm:text-2xl font-serif">
+              X
+            </span>
+            <span className="px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold tracking-tight uppercase">
+              AI
+            </span>
+          </div>
+          {showSubtitle && (
+            <span className="text-[10px] font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-500 mt-0.5">
+              Job Opportunities
+            </span>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-// Backwards compatibility export
+// Unified exports
 export const OrionLogo = SwipeXLogo;
+

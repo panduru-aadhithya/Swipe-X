@@ -213,10 +213,10 @@ export const applicationRepository = {
     );
   },
 
-  create(app: Application): Application {
+  async create(app: Application): Promise<Application> {
+    await db.persistApplication(app);
     db.applications.push(app);
     db.saveState();
-    db.persistApplication(app).catch(() => {});
     return app;
   },
 
@@ -235,5 +235,25 @@ export const applicationRepository = {
     db.saveState();
     db.persistApplication(app).catch(() => {});
     return app;
+  },
+
+  updateNotes(id: string, candidateNotes: string): Application | undefined {
+    const app = db.applications.find(a => a.id === id);
+    if (!app) return undefined;
+
+    app.candidateNotes = candidateNotes;
+    app.updatedDate = new Date().toISOString();
+    db.saveState();
+    db.persistApplication(app).catch(() => {});
+    return app;
+  },
+
+  delete(id: string): boolean {
+    const idx = db.applications.findIndex(a => a.id === id);
+    if (idx === -1) return false;
+    db.applications.splice(idx, 1);
+    db.saveState();
+    db.deleteApplication(id).catch(() => {});
+    return true;
   }
 };

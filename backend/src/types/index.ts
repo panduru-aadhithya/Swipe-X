@@ -5,7 +5,8 @@ export type EmploymentType = 'Full-time' | 'Contract' | 'Part-time' | 'Internshi
 export type CompanyType = 'MNC' | 'Startup' | 'Newly Founded' | 'Enterprise';
 export type CompetitionLevel = 'Low' | 'Medium' | 'High';
 
-export type SwipeDecisionType = 'LEFT' | 'SAVE' | 'RIGHT';
+export type SwipeActionType = 'right_swipe' | 'left_swipe' | 'save_swipe';
+export type SwipeDecisionType = 'LEFT' | 'SAVE' | 'RIGHT' | 'left_swipe' | 'right_swipe';
 
 export type ApplicationStatus = 
   | 'APPLIED'
@@ -261,12 +262,29 @@ export interface JobRecommendation {
 
 export interface SwipeDecision {
   id: string;
+  userId?: string;
   candidateProfileId: string;
   jobId: string;
+  action?: SwipeActionType;
   decision: SwipeDecisionType;
+  timestamp?: string;
   createdAt: string;
+
+  // Job snapshot attributes at time of swipe
+  jobTitle?: string;
+  company?: string;
+  skills?: string[];
+  location?: string;
+  employmentType?: string;
+  experienceLevel?: string;
+  salary?: string;
+  jobCategory?: string;
+
   job?: Job;
   applied?: boolean;
+  applicationId?: string;
+  applicationStatus?: string;
+  appliedDate?: string;
 }
 
 export interface BehavioralProfile {

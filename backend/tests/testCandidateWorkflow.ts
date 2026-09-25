@@ -142,10 +142,11 @@ async function runTests() {
     updatedDate: new Date().toISOString(),
     statusHistory: [{ status: 'APPLIED' as const, timestamp: new Date().toISOString(), note: 'Applied' }]
   };
-  applicationRepository.create(app);
+  await applicationRepository.create(app);
   console.log(`✓ Application submitted for job "${targetJob.title}". Application ID: ${app.id}`);
 
   console.log('--- ALL INTEGRATION TESTS PASSED CLEANLY ---');
+  process.exit(0);
 }
 
 runTests().catch((err) => {

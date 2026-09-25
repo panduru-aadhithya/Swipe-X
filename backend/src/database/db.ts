@@ -66,17 +66,23 @@ class DatabaseService {
       if (fs.existsSync(DB_FILE_PATH)) {
         const raw = fs.readFileSync(DB_FILE_PATH, 'utf8');
         const parsed = JSON.parse(raw);
+        const isDemo = (email?: string, id?: string, userId?: string) =>
+          email === 'candidate.demo@swipe-x.ai' ||
+          id === 'user_demo_candidate_01' ||
+          id === 'cand_demo_candidate_01' ||
+          userId === 'user_demo_candidate_01';
+
         this.state = {
-          users: parsed.users || [],
-          candidateProfiles: parsed.candidateProfiles || [],
-          resumes: parsed.resumes || [],
-          resumeData: parsed.resumeData || [],
+          users: (parsed.users || []).filter((u: any) => !isDemo(u.email, u.id)),
+          candidateProfiles: (parsed.candidateProfiles || []).filter((p: any) => !isDemo(p.email, p.id, p.userId)),
+          resumes: (parsed.resumes || []).filter((r: any) => !r.id?.startsWith('res_demo') && r.id !== 'resume_demo_01'),
+          resumeData: (parsed.resumeData || []).filter((rd: any) => !rd.id?.startsWith('rd_demo')),
           jobs: parsed.jobs || [],
           jobRecommendations: parsed.jobRecommendations || [],
           swipeDecisions: parsed.swipeDecisions || [],
           savedJobs: parsed.savedJobs || [],
           atsReports: parsed.atsReports || [],
-          applications: parsed.applications || []
+          applications: (parsed.applications || []).filter((a: any) => a.candidateProfileId !== 'cand_demo_candidate_01')
         };
       }
     } catch (err) {
@@ -144,16 +150,29 @@ class DatabaseService {
           return { ...rest, id };
         });
 
-        this.state.users = sanitize(mongoUsers) as User[];
-        this.state.candidateProfiles = sanitize(mongoCandidates) as CandidateProfile[];
-        this.state.resumes = sanitize(mongoResumes) as Resume[];
-        this.state.resumeData = sanitize(mongoResumeData) as ResumeData[];
+        const isDemo = (email?: string, id?: string, userId?: string) =>
+          email === 'candidate.demo@swipe-x.ai' ||
+          id === 'user_demo_candidate_01' ||
+          id === 'cand_demo_candidate_01' ||
+          userId === 'user_demo_candidate_01';
+
+        this.state.users = (sanitize(mongoUsers) as User[]).filter(u => !isDemo(u.email, u.id));
+        this.state.candidateProfiles = (sanitize(mongoCandidates) as CandidateProfile[]).filter(p => !isDemo(p.email, p.id, p.userId));
+        this.state.resumes = (sanitize(mongoResumes) as Resume[]).filter(r => !r.id?.startsWith('res_demo') && r.id !== 'resume_demo_01');
+        this.state.resumeData = (sanitize(mongoResumeData) as ResumeData[]).filter(rd => !rd.id?.startsWith('rd_demo'));
         this.state.jobs = sanitize(mongoJobs) as Job[];
         this.state.jobRecommendations = sanitize(mongoJobRecommendations) as JobRecommendation[];
         this.state.swipeDecisions = sanitize(mongoSwipes) as SwipeDecision[];
         this.state.savedJobs = sanitize(mongoSavedJobs) as SavedJob[];
         this.state.atsReports = sanitize(mongoAtsReports) as ATSReport[];
-        this.state.applications = sanitize(mongoApplications) as Application[];
+        this.state.applications = (sanitize(mongoApplications) as Application[]).filter(a => a.candidateProfileId !== 'cand_demo_candidate_01');
+
+        // Asynchronously remove demo documents from MongoDB if present
+        Promise.all([
+          UserModel.deleteMany({ $or: [{ email: 'candidate.demo@swipe-x.ai' }, { id: 'user_demo_candidate_01' }] }),
+          CandidateProfileModel.deleteMany({ $or: [{ email: 'candidate.demo@swipe-x.ai' }, { id: 'cand_demo_candidate_01' }, { userId: 'user_demo_candidate_01' }] }),
+          ApplicationModel.deleteMany({ candidateProfileId: 'cand_demo_candidate_01' })
+        ]).catch(() => {});
 
         this.isMongoSynced = true;
         console.log(`[DatabaseService] Synced from MongoDB Atlas: ${this.state.jobs.length} jobs, ${this.state.users.length} users.`);
@@ -372,13 +391,26 @@ class DatabaseService {
     if (!isMongoConnected()) return;
     try {
       const { _id, ...rest } = application as any;
-      await ApplicationModel.updateOne(
+      const res = await ApplicationModel.updateOne(
         { id: application.id },
         { $set: { ...rest, id: application.id }, $setOnInsert: { _id: application.id } },
         { upsert: true }
       );
+      if (!res.acknowledged) {
+        throw new Error('MongoDB write unacknowledged');
+      }
     } catch (err: any) {
       console.error('[DatabaseService] Error persisting application to Mongo:', err.message);
+      throw err;
+    }
+  }
+
+  public async deleteApplication(id: string): Promise<void> {
+    if (!isMongoConnected()) return;
+    try {
+      await ApplicationModel.deleteOne({ id });
+    } catch (err: any) {
+      console.error('[DatabaseService] Error deleting application from Mongo:', err.message);
     }
   }
 

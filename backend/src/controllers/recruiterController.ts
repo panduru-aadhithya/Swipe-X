@@ -94,18 +94,37 @@ export const recruiterController = {
   // 2. Get recruiter's posted jobs
   getPostedJobs(req: AuthenticatedRequest, res: Response): void {
     const recruiterId = req.user?.id;
-    // Return jobs posted by this recruiter or fallback to sample active postings
-    const recruiterJobs = db.jobs.filter(j => j.recruiterId === recruiterId);
-    const sampleJobs = db.jobs.slice(0, 6);
-    const resultList = recruiterJobs.length > 0 ? recruiterJobs : sampleJobs;
+    // Return jobs posted by this recruiter (or recruiter_demo fallback)
+    const recruiterJobs = db.jobs.filter(j => j.recruiterId === recruiterId || (req.user && j.recruiterId === 'recruiter_demo'));
 
     res.json({
       success: true,
       data: {
-        jobs: resultList,
-        total: resultList.length
+        jobs: recruiterJobs,
+        total: recruiterJobs.length
       }
     });
+  },
+
+  // Delete a job posted by recruiter (removes it immediately from Jobs Discovery)
+  deleteJob(req: AuthenticatedRequest, res: Response): void {
+    const { id } = req.params;
+    const recruiterId = req.user?.id;
+    const initialCount = db.jobs.length;
+    const updated = db.jobs.filter(j => !(j.id === id && (j.recruiterId === recruiterId || j.recruiterId === 'recruiter_demo')));
+    
+    if (updated.length < initialCount) {
+      db.setJobs(updated);
+      res.json({
+        success: true,
+        message: 'Job successfully removed from Jobs Discovery'
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Job not found or unauthorized' }
+      });
+    }
   },
 
   // 3. Get incoming applicants across all posted jobs
@@ -125,8 +144,8 @@ export const recruiterController = {
       applicants.push({
         applicationId: app.id,
         candidateId: app.candidateProfileId,
-        candidateName: cand?.name || 'Alex Morgan',
-        candidateEmail: cand?.email || 'candidate.demo@swipe-x.ai',
+        candidateName: cand?.name || 'Applicant',
+        candidateEmail: cand?.email || 'applicant@example.com',
         jobId: app.jobId,
         jobTitle: app.job.title,
         jobCompany: app.job.company,
@@ -137,7 +156,7 @@ export const recruiterController = {
         missingSkills: ['Kubernetes'],
         coverLetter: app.coverLetter,
         candidateNotes: app.candidateNotes,
-        resumeFileName: 'Alex_Morgan_Senior_Engineer.pdf',
+        resumeFileName: cand?.name ? `${cand.name.replace(/\s+/g, '_')}_Resume.pdf` : 'Candidate_Resume.pdf',
         experienceYears: cand?.experienceYears || 5
       });
     }

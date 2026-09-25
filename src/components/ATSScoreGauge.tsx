@@ -11,28 +11,28 @@ export const ATSScoreGauge: React.FC<ATSScoreGaugeProps> = ({ report, compact = 
   const { atsScore, skillScore, keywordScore, experienceScore, educationScore } = report;
 
   const getScoreColor = (val: number) => {
-    if (val >= 85) return 'text-[#5B6D5B] dark:text-[#8FA68F] stroke-[#5B6D5B] dark:stroke-[#8FA68F]';
-    if (val >= 70) return 'text-[#5A7787] dark:text-[#8BAAB9] stroke-[#5A7787] dark:stroke-[#8BAAB9]';
-    if (val >= 50) return 'text-[#C29352] dark:text-[#E0B273] stroke-[#C29352] dark:stroke-[#E0B273]';
-    return 'text-[#B86B64] dark:text-[#D48982] stroke-[#B86B64] dark:stroke-[#D48982]';
+    if (val >= 85) return 'text-emerald-600 dark:text-emerald-400 stroke-emerald-600 dark:stroke-emerald-400';
+    if (val >= 70) return 'text-violet-600 dark:text-violet-400 stroke-violet-600 dark:stroke-violet-400';
+    if (val >= 50) return 'text-orange-500 dark:text-orange-400 stroke-orange-500 dark:stroke-orange-400';
+    return 'text-rose-500 dark:text-rose-400 stroke-rose-500 dark:stroke-rose-400';
   };
 
   const getProgressBg = (val: number) => {
-    if (val >= 85) return 'bg-[#5B6D5B]';
-    if (val >= 70) return 'bg-[#5A7787]';
-    if (val >= 50) return 'bg-[#C29352]';
-    return 'bg-[#B86B64]';
+    if (val >= 85) return 'bg-emerald-500';
+    if (val >= 70) return 'bg-violet-600';
+    if (val >= 50) return 'bg-orange-500';
+    return 'bg-rose-500';
   };
 
   return (
-    <div id={`ats-report-${report.id}`} className="bg-white dark:bg-[#252C25] border border-[#DCD7C9] dark:border-[#2E362E] rounded-3xl p-6 sm:p-8 shadow-sm">
+    <div id={`ats-report-${report.id}`} className="bg-white dark:bg-[#151D2A] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs">
       {/* Header with Circular Score */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pb-6 border-b border-[#DCD7C9] dark:border-[#2E362E]">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-200/80 dark:border-slate-800">
         <div className="flex items-center gap-5">
           <div className="relative w-24 h-24 flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <path
-                className="text-[#E9E4D9] dark:text-[#1E251E]"
+                className="text-slate-100 dark:text-slate-800"
                 strokeWidth="3.5"
                 stroke="currentColor"
                 fill="none"
@@ -49,10 +49,10 @@ export const ATSScoreGauge: React.FC<ATSScoreGaugeProps> = ({ report, compact = 
               />
             </svg>
             <div className="absolute flex flex-col items-center justify-center text-center">
-              <span className={`text-2xl font-black ${getScoreColor(atsScore)} font-serif`}>
+              <span className={`text-2xl font-black ${getScoreColor(atsScore)} font-display`}>
                 {atsScore}
               </span>
-              <span className="text-[10px] uppercase font-semibold text-[#8C867A] dark:text-[#A6A092]">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 dark:text-slate-500">
                 / 100
               </span>
             </div>
@@ -60,65 +60,65 @@ export const ATSScoreGauge: React.FC<ATSScoreGaugeProps> = ({ report, compact = 
 
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-bold text-[#2D2926] dark:text-[#F2F0E9] font-serif">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white font-display">
                 ATS Compatibility Score
               </h3>
-              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full bg-[#E9E4D9] dark:bg-[#1E251E] text-[#5B6D5B] dark:text-[#8FA68F] font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#5B6D5B]" /> AI Verified
+              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800/80">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> AI Verified
               </span>
             </div>
-            <p className="text-sm text-[#8C867A] dark:text-[#A6A092] mt-1 max-w-md">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md">
               Evaluated against industry ATS parsing algorithms, keyword density, and technical requirements.
             </p>
           </div>
         </div>
 
-        <div className="w-full sm:w-auto flex sm:flex-col items-center sm:items-end justify-between gap-1 text-xs text-[#8C867A] dark:text-[#A6A092]">
-          <span className="font-mono text-[10px]">Model v2.4</span>
-          <span className="font-semibold text-[#2D2926] dark:text-[#F2F0E9]">
+        <div className="w-full sm:w-auto flex sm:flex-col items-center sm:items-end justify-between gap-1 text-xs text-slate-500 dark:text-slate-400">
+          <span className="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">Swipe X ATS v2.4</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-200">
             {atsScore >= 80 ? 'High Interview Probability' : atsScore >= 65 ? 'Moderate Match' : 'Optimization Needed'}
           </span>
         </div>
       </div>
 
       {/* Component breakdown */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-b border-[#DCD7C9] dark:border-[#2E362E]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-b border-slate-200/80 dark:border-slate-800">
         <div>
           <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-[#8C867A] dark:text-[#A6A092]">Skills Overlap (35%)</span>
-            <span className="font-bold text-[#2D2926] dark:text-[#F2F0E9]">{skillScore}%</span>
+            <span className="text-slate-500 dark:text-slate-400">Skills Overlap (35%)</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">{skillScore}%</span>
           </div>
-          <div className="h-2 bg-[#E9E4D9] dark:bg-[#1E251E] rounded-full overflow-hidden">
+          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div className={`h-full rounded-full ${getProgressBg(skillScore)}`} style={{ width: `${skillScore}%` }} />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-[#8C867A] dark:text-[#A6A092]">Keywords (25%)</span>
-            <span className="font-bold text-[#2D2926] dark:text-[#F2F0E9]">{keywordScore}%</span>
+            <span className="text-slate-500 dark:text-slate-400">Keywords (25%)</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">{keywordScore}%</span>
           </div>
-          <div className="h-2 bg-[#E9E4D9] dark:bg-[#1E251E] rounded-full overflow-hidden">
+          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div className={`h-full rounded-full ${getProgressBg(keywordScore)}`} style={{ width: `${keywordScore}%` }} />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-[#8C867A] dark:text-[#A6A092]">Experience (20%)</span>
-            <span className="font-bold text-[#2D2926] dark:text-[#F2F0E9]">{experienceScore}%</span>
+            <span className="text-slate-500 dark:text-slate-400">Experience (20%)</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">{experienceScore}%</span>
           </div>
-          <div className="h-2 bg-[#E9E4D9] dark:bg-[#1E251E] rounded-full overflow-hidden">
+          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div className={`h-full rounded-full ${getProgressBg(experienceScore)}`} style={{ width: `${experienceScore}%` }} />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-[#8C867A] dark:text-[#A6A092]">Education (10%)</span>
-            <span className="font-bold text-[#2D2926] dark:text-[#F2F0E9]">{educationScore}%</span>
+            <span className="text-slate-500 dark:text-slate-400">Education (10%)</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">{educationScore}%</span>
           </div>
-          <div className="h-2 bg-[#E9E4D9] dark:bg-[#1E251E] rounded-full overflow-hidden">
+          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div className={`h-full rounded-full ${getProgressBg(educationScore)}`} style={{ width: `${educationScore}%` }} />
           </div>
         </div>
@@ -126,11 +126,11 @@ export const ATSScoreGauge: React.FC<ATSScoreGaugeProps> = ({ report, compact = 
 
       {/* Skills Matrix */}
       {!compact && (
-        <div className="py-6 border-b border-[#DCD7C9] dark:border-[#2E362E] grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="py-6 border-b border-slate-200/80 dark:border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Matched skills */}
           <div>
-            <h4 className="flex items-center gap-2 text-sm font-serif font-bold text-[#2D2926] dark:text-[#F2F0E9] mb-3">
-              <CheckCircle2 className="w-4 h-4 text-[#5B6D5B]" />
+            <h4 className="flex items-center gap-2 text-sm font-display font-bold text-slate-900 dark:text-white mb-3">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               Matched Skills ({report.matchedSkills.length})
             </h4>
             <div className="flex flex-wrap gap-1.5">
@@ -138,21 +138,21 @@ export const ATSScoreGauge: React.FC<ATSScoreGaugeProps> = ({ report, compact = 
                 report.matchedSkills.map((s, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-[#5B6D5B]/15 text-[#5B6D5B] dark:text-[#8FA68F] border border-[#5B6D5B]/30 font-medium"
+                    className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-medium"
                   >
                     ✓ {s}
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-[#8C867A]">No direct skill matches detected</span>
+                <span className="text-xs text-slate-400">No direct skill matches detected</span>
               )}
             </div>
           </div>
 
           {/* Missing skills */}
           <div>
-            <h4 className="flex items-center gap-2 text-sm font-serif font-bold text-[#2D2926] dark:text-[#F2F0E9] mb-3">
-              <XCircle className="w-4 h-4 text-[#B86B64]" />
+            <h4 className="flex items-center gap-2 text-sm font-display font-bold text-slate-900 dark:text-white mb-3">
+              <XCircle className="w-4 h-4 text-rose-500" />
               Missing Skills / Keywords ({report.missingSkills.length})
             </h4>
             <div className="flex flex-wrap gap-1.5">
@@ -160,13 +160,13 @@ export const ATSScoreGauge: React.FC<ATSScoreGaugeProps> = ({ report, compact = 
                 report.missingSkills.map((s, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-[#B86B64]/15 text-[#B86B64] dark:text-[#D48982] border border-[#B86B64]/30 font-medium"
+                    className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-medium"
                   >
                     • {s}
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-[#5B6D5B] dark:text-[#8FA68F] font-medium">All core job skills matched!</span>
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">All core job skills matched!</span>
               )}
             </div>
           </div>
@@ -176,14 +176,14 @@ export const ATSScoreGauge: React.FC<ATSScoreGaugeProps> = ({ report, compact = 
       {/* Suggestions & Actionable Tips */}
       {!compact && report.suggestions.length > 0 && (
         <div className="pt-6">
-          <h4 className="flex items-center gap-2 text-sm font-serif font-bold text-[#2D2926] dark:text-[#F2F0E9] mb-3">
-            <Lightbulb className="w-4 h-4 text-[#C29352]" />
+          <h4 className="flex items-center gap-2 text-sm font-display font-bold text-slate-900 dark:text-white mb-3">
+            <Lightbulb className="w-4 h-4 text-orange-500" />
             AI Resume Improvement Recommendations
           </h4>
           <ul className="space-y-2">
             {report.suggestions.map((tip, idx) => (
-              <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#2D2926] dark:text-[#E9E4D9] bg-[#E9E4D9]/40 dark:bg-[#1E251E] p-3.5 rounded-2xl border border-[#DCD7C9] dark:border-[#2E362E]">
-                <span className="w-5 h-5 rounded-full bg-[#C29352]/20 text-[#C29352] dark:text-[#E0B273] font-bold flex items-center justify-center shrink-0 text-xs">
+              <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
+                <span className="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 font-bold flex items-center justify-center shrink-0 text-xs">
                   {idx + 1}
                 </span>
                 <span>{tip}</span>
@@ -194,10 +194,11 @@ export const ATSScoreGauge: React.FC<ATSScoreGaugeProps> = ({ report, compact = 
       )}
 
       {/* Disclaimer */}
-      <div className="mt-6 pt-4 border-t border-[#DCD7C9] dark:border-[#2E362E] flex items-start gap-2 text-[11px] text-[#8C867A] dark:text-[#A6A092]">
-        <AlertTriangle className="w-3.5 h-3.5 text-[#8C867A] shrink-0 mt-0.5" />
+      <div className="mt-6 pt-4 border-t border-slate-200/80 dark:border-slate-800 flex items-start gap-2 text-[11px] text-slate-400 dark:text-slate-500">
+        <AlertTriangle className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
         <span>{report.disclaimer}</span>
       </div>
     </div>
   );
 };
+

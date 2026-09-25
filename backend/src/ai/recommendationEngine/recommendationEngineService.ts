@@ -38,9 +38,9 @@ export class RecommendationEngineService {
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    const rightSwipes = allCandidateSwipes.filter(s => s.decision === 'RIGHT');
-    const leftSwipes = allCandidateSwipes.filter(s => s.decision === 'LEFT');
-    const savedSwipes = allCandidateSwipes.filter(s => s.decision === 'SAVE');
+    const rightSwipes = allCandidateSwipes.filter(s => s.decision === 'RIGHT' || s.action === 'right_swipe');
+    const leftSwipes = allCandidateSwipes.filter(s => s.decision === 'LEFT' || s.action === 'left_swipe');
+    const savedSwipes = allCandidateSwipes.filter(s => s.decision === 'SAVE' || s.action === 'save_swipe');
 
     // Multi-dimensional preference accumulators
     const skillAffinityMap: Record<string, { positiveScore: number; negativeScore: number; count: number }> = {};
@@ -50,22 +50,24 @@ export class RecommendationEngineService {
       'On-site': { positive: 0, negative: 0 }
     };
     const titleTokenAffinities: Record<string, number> = {};
+    const categoryAffinities: Record<string, { positive: number; negative: number }> = {};
+    const expLevelAffinities: Record<string, { positive: number; negative: number }> = {};
 
     sortedSwipes.forEach((swipe, index) => {
-      const job = db.jobs.find(j => j.id === swipe.jobId);
+      const job = db.jobs.find(j => j.id === swipe.jobId) || swipe.job;
       if (!job) return;
 
       // Recency multiplier: most recent 5 swipes have 1.5x impact, next 10 have 1.2x impact
-      const recencyWeight = index < 5 ? 1.5 : index < 15 ? 1.2 : 1.0;
-      const isPositive = swipe.decision === 'RIGHT' || swipe.decision === 'SAVE';
+      const recencyWeight = index < 5 ? 1.6 : index < 15 ? 1.25 : 1.0;
+      const isPositive = swipe.decision === 'RIGHT' || swipe.action === 'right_swipe' || swipe.decision === 'SAVE';
       const isApplied = appliedJobIds.has(swipe.jobId);
 
-      // Score magnitude: RIGHT = 2.0, SAVE = 1.6, APPLIED = +3.0, LEFT = -1.8
-      const baseWeight = isApplied ? 3.0 : swipe.decision === 'RIGHT' ? 2.0 : swipe.decision === 'SAVE' ? 1.6 : 1.8;
+      // Score magnitude: RIGHT = 2.2, SAVE = 1.8, APPLIED = +3.5, LEFT = -2.2
+      const baseWeight = isApplied ? 3.5 : (swipe.decision === 'RIGHT' || swipe.action === 'right_swipe') ? 2.2 : swipe.decision === 'SAVE' ? 1.8 : 2.2;
       const effectiveWeight = baseWeight * recencyWeight;
 
       // Track skills & keywords
-      const allJobKeywords = Array.from(new Set([...(job.extractedSkills || []), ...(job.keywords || [])]));
+      const allJobKeywords = Array.from(new Set([...(job.extractedSkills || swipe.skills || []), ...(job.keywords || [])]));
       for (const kw of allJobKeywords) {
         const normalized = kw.trim();
         if (!skillAffinityMap[normalized]) {
@@ -88,11 +90,25 @@ export class RecommendationEngineService {
         }
       }
 
-      // Track role title tokens
-      const titleWords = job.title.toLowerCase().split(/\W+/).filter(w => w.length > 2);
+      // Track role category / company type
+      const cat = swipe.jobCategory || job.companyType || 'General';
+      if (!categoryAffinities[cat]) categoryAffinities[cat] = { positive: 0, negative: 0 };
+      if (isPositive) categoryAffinities[cat].positive += effectiveWeight;
+      else categoryAffinities[cat].negative += effectiveWeight;
+
+      // Track experience level
+      const expLevel = job.experienceLevel || swipe.experienceLevel;
+      if (expLevel) {
+        if (!expLevelAffinities[expLevel]) expLevelAffinities[expLevel] = { positive: 0, negative: 0 };
+        if (isPositive) expLevelAffinities[expLevel].positive += 1;
+        else expLevelAffinities[expLevel].negative += 1;
+      }
+
+      // Track role title tokens (e.g. python, machine, learning, data, sales, marketing)
+      const titleWords = (job.title || swipe.jobTitle || '').toLowerCase().split(/\W+/).filter(w => w.length > 2);
       for (const w of titleWords) {
-        if (['the', 'and', 'for', 'with', 'job', 'developer', 'engineer'].includes(w)) continue;
-        titleTokenAffinities[w] = (titleTokenAffinities[w] || 0) + (isPositive ? effectiveWeight : -effectiveWeight);
+        if (['the', 'and', 'for', 'with', 'job', 'position', 'role'].includes(w)) continue;
+        titleTokenAffinities[w] = (titleTokenAffinities[w] || 0) + (isPositive ? effectiveWeight : -effectiveWeight * 1.2);
       }
     });
 
@@ -241,19 +257,44 @@ export class RecommendationEngineService {
       let titleBoost = 0;
       for (const w of titleWords) {
         if (titleTokenAffinities[w]) {
-          titleBoost += titleTokenAffinities[w] > 0 ? 2 : -2.5;
+          titleBoost += titleTokenAffinities[w] > 0 ? 2.5 : -3.0;
         }
       }
       if (titleBoost !== 0) {
-        const clampedTitle = Math.max(-8, Math.min(8, Math.round(titleBoost)));
+        const clampedTitle = Math.max(-12, Math.min(12, Math.round(titleBoost)));
         swipeBoost += clampedTitle;
         if (clampedTitle > 3) {
           swipeReasons.push(`Role title matches patterns from jobs you swiped right on`);
+        } else if (clampedTitle < -3) {
+          swipeReasons.push(`Role title matches keywords you previously passed on`);
         }
       }
 
-      // Clamp swipe boost between -30 and +25
-      swipeBoost = Math.max(-30, Math.min(25, swipeBoost));
+      // D. Industry / Category affinity
+      const jobCategory = job.companyType || 'General';
+      if (categoryAffinities[jobCategory]) {
+        const catData = categoryAffinities[jobCategory];
+        if (catData.positive > catData.negative + 1.5) {
+          swipeBoost += 5;
+          swipeReasons.push(`From a preferred category (${jobCategory})`);
+        } else if (catData.negative > catData.positive + 2.5) {
+          swipeBoost -= 7;
+          swipeReasons.push(`De-prioritized based on previous left-swipes in ${jobCategory}`);
+        }
+      }
+
+      // E. Experience level affinity
+      if (job.experienceLevel && expLevelAffinities[job.experienceLevel]) {
+        const expData = expLevelAffinities[job.experienceLevel];
+        if (expData.positive > expData.negative) {
+          swipeBoost += 3;
+        } else if (expData.negative > expData.positive + 2) {
+          swipeBoost -= 5;
+        }
+      }
+
+      // Clamp swipe boost between -35 and +30
+      swipeBoost = Math.max(-35, Math.min(30, swipeBoost));
 
       // Final adjusted score
       const adjustedScore = Math.max(25, Math.min(99, baseScore + swipeBoost));

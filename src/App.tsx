@@ -20,7 +20,6 @@ import { JobDetailPage } from './pages/JobDetailPage';
 import { MockInterviewPage } from './pages/MockInterviewPage';
 import { GrowthJourneyPage } from './pages/GrowthJourneyPage';
 import { RecruiterDashboardPage } from './pages/RecruiterDashboardPage';
-import { AdminDashboardPage } from './pages/AdminDashboardPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -176,23 +175,9 @@ export function App() {
                 }
               />
 
-              {/* Admin Hub Routes */}
-              <Route
-                path="admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminDashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="admin/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <AdminDashboardPage />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Legacy redirect */}
+              <Route path="admin" element={<Navigate to="/candidate/swipe" replace />} />
+              <Route path="admin/*" element={<Navigate to="/candidate/swipe" replace />} />
 
               {/* Top-Level Aliases */}
               <Route path="dashboard" element={<Navigate to="/candidate/dashboard" replace />} />

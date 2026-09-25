@@ -156,11 +156,47 @@ Swipe X implements an earthy, high-contrast **Natural Tones** visual identity:
   - Preferred job title, target salary (USD), and work mode (Remote/Hybrid/Onsite).
   - Dynamic skill tag manager (add/remove skills that directly influence the recommendation engine).
 
-### 11. `LoginPage.tsx` & `RegisterPage.tsx`
-* **Routes**: `/login`, `/register`
-* **Features**: Email/password authentication, error alerts, and 1-click demo account loader.
+### 11. `MockInterviewPage.tsx`
+* **Route**: `/mock-interview`
+* **Purpose**: Dedicated AI STAR Mock Interview Simulator.
+* **Features**:
+  - Target role selection from saved, applied, or all 1,048 jobs.
+  - Dynamically generated behavioral and technical questions customized to the selected role.
+  - Web Speech API integration for hands-free audio transcription and structured text answer box.
+  - Live session timer for practicing time management.
+  - Multi-dimensional evaluation: Clarity Score (0-100), Technical Depth Score (0-100), and STAR Impact Score (0-100), accompanied by constructive feedback and model STAR response.
 
-### 12. `SettingsPage.tsx`
+### 12. `RecruiterDashboardPage.tsx`
+* **Route**: `/recruiter`
+* **Purpose**: Hiring manager candidate review pipeline and job publishing hub.
+* **Features**:
+  - Direct job creation modal for publishing new verified opportunities.
+  - Pipeline table displaying applicant names, applied roles, pre-flight ATS compatibility scores, and active status.
+  - Single-click stage transitions (`REVIEWING`, `INTERVIEWING`, `OFFERED`, `REJECTED`).
+
+### 13. `AdminDashboardPage.tsx`
+* **Route**: `/admin`
+* **Purpose**: System-wide telemetry command center and user administration.
+* **Features**:
+  - Live AI latency benchmarks, database health check, and system uptime.
+  - User role inspector and accounts directory.
+  - Chronological platform audit stream of all swipes, ATS audits, and applications.
+
+### 14. `SwipeHistoryPage.tsx`
+* **Route**: `/swipe-history`
+* **Purpose**: Audit log of all candidate swipe actions.
+* **Features**: Filter by Right (Matches), Left (Passes), or Up (Saved), with timestamps and option to reconsider passed roles.
+
+### 15. `GrowthJourneyPage.tsx`
+* **Route**: `/growth-journey`
+* **Purpose**: Visual career advancement roadmap.
+* **Features**: Visualizes technical skills gaps between junior, mid-level, senior, and lead engineering roles with suggested focus areas.
+
+### 16. `LoginPage.tsx` & `RegisterPage.tsx`
+* **Routes**: `/login`, `/register`
+* **Features**: Email/password authentication, error alerts, and 1-click demo account loader (Candidate, Recruiter, Admin).
+
+### 17. `SettingsPage.tsx`
 * **Route**: `/settings`
 * **Features**: Theme switcher (Light / Dark / System), AI Model status indicator, and persistence storage info.
 
@@ -170,7 +206,7 @@ Swipe X implements an earthy, high-contrast **Natural Tones** visual identity:
 
 ### `JobCard.tsx`
 * **Props**: `job: Job`, `matchScore: number`, `onSwipe: (dir: 'left'|'right'|'save') => void`, `isTopCard: boolean`.
-* **Behavior**: Handles touch and mouse drag gestures with `motion.div`, updating rotation angle $\theta = \frac{x}{20}^\circ$ and displaying translucent "LIKE" or "NOPE" stamp overlays as drag threshold is approached.
+* **Behavior**: Handles touch and mouse drag gestures with `motion.div`, updating rotation angle $\theta = \frac{x}{20}^\circ$ and displaying translucent "MATCH" or "PASS" stamp overlays as drag threshold is approached.
 
 ### `ATSScoreGauge.tsx`
 * **Props**: `report: ATSReport`.
@@ -180,9 +216,24 @@ Swipe X implements an earthy, high-contrast **Natural Tones** visual identity:
 * **Props**: `job: Job`, `isOpen: boolean`, `onClose: () => void`, `onSuccess: () => void`.
 * **Behavior**: Displays ATS compatibility summary, candidate profile snapshot, and optional cover note input. Fires `canvas-confetti` celebration upon submission.
 
+### `JobDetailDrawer.tsx`
+* **Props**: `jobId: string | null`, `isOpen: boolean`, `onClose: () => void`.
+* **Behavior**: Slide-over drawer offering a quick comprehensive view of any job from Explore or Deck views without navigating away.
+
+### `MockInterviewModal.tsx`
+* **Props**: `job: Job`, `isOpen: boolean`, `onClose: () => void`.
+* **Behavior**: On-demand mock interview modal triggered directly from a job card or listing.
+
+### `NotificationsModal.tsx`
+* **Props**: `isOpen: boolean`, `onClose: () => void`.
+* **Behavior**: Displays recent alerts, application status transitions, and newly matched tech roles.
+
 ### `MatchBadge.tsx`
 * **Props**: `score: number`, `size?: 'sm'|'md'|'lg'`.
 * **Behavior**: Renders formatted percentage badge with sparkle icon and contextual color tone.
 
+### `MobileBottomNav.tsx`
+* **Behavior**: Fixed bottom navigation for viewports under 1024px with high-contrast active route pills and $\ge 48\text{px}$ touch targets.
+
 ### `Layout.tsx`, `Navbar.tsx`, `Sidebar.tsx`
-* **Behavior**: Provides responsive layout framing, collapsible sidebar on desktop, slide-out drawer on mobile, and top navigation header with user profile dropdown.
+* **Behavior**: Provides responsive widescreen layout framing (up to 1720px), desktop sidebar with 80px top nav, and profile quick switcher.

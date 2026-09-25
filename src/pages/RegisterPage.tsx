@@ -23,10 +23,15 @@ export const RegisterPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      await register({ name, email, password });
-      navigate('/candidate/resume');
+      await register({ name: name.trim(), email: email.trim(), password });
+      navigate('/candidate/resume?promptUpload=true');
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      const msg = err?.message || '';
+      if (msg.includes('is not valid JSON') || msg.includes('Unexpected token')) {
+        setError('Registration failed. Please verify your email and details.');
+      } else {
+        setError(msg || 'Registration failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -34,14 +39,14 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white dark:bg-[#0F172A] p-8 sm:p-10 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl">
+      <div className="max-w-md w-full space-y-8 bg-white dark:bg-[#151D2A] p-8 sm:p-10 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
         
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="flex justify-center">
             <SwipeXLogo size={48} showText={false} />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-serif tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-display tracking-tight">
             Create Your Account
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
@@ -58,7 +63,7 @@ export const RegisterPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1.5 font-serif">
+            <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1.5 font-display">
               Full Name
             </label>
             <div className="relative">
@@ -69,14 +74,14 @@ export const RegisterPage: React.FC = () => {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Alex Morgan"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400"
+                placeholder="Jane Doe"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none placeholder:text-slate-400"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1.5 font-serif">
+            <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1.5 font-display">
               Email Address
             </label>
             <div className="relative">
@@ -88,13 +93,13 @@ export const RegisterPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none placeholder:text-slate-400"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1.5 font-serif">
+            <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1.5 font-display">
               Password
             </label>
             <div className="relative">
@@ -107,7 +112,7 @@ export const RegisterPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="At least 6 characters"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none placeholder:text-slate-400"
               />
             </div>
           </div>
@@ -116,7 +121,7 @@ export const RegisterPage: React.FC = () => {
             id="register-submit-btn"
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 hover:scale-[1.02]"
+            className="w-full py-3 rounded-full bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 font-display cursor-pointer"
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Account & Continue'}
           </button>
@@ -124,7 +129,7 @@ export const RegisterPage: React.FC = () => {
 
         <p className="text-center text-xs text-slate-500 dark:text-slate-400">
           Already have an account?{' '}
-          <Link to="/login" className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+          <Link to="/login" className="font-bold text-violet-600 dark:text-violet-400 hover:underline font-display">
             Sign in
           </Link>
         </p>

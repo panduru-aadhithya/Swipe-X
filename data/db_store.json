@@ -1,15 +1,6 @@
 {
   "users": [
     {
-      "id": "user_demo_candidate_01",
-      "email": "candidate.demo@swipe-x.ai",
-      "passwordHash": "$2b$10$.VOj0AKOqts88B3ycumPouwR9fljMil2qGBd1mq55rAFlM7d8RDOe",
-      "name": "Alex Morgan",
-      "role": "CANDIDATE",
-      "createdAt": "2026-09-05T15:45:50.856Z",
-      "updatedAt": "2026-09-05T15:45:50.856Z"
-    },
-    {
       "id": "user_test_candidate",
       "email": "test.candidate@swipe-x.ai",
       "passwordHash": "$2b$10$G/UpWuvOUpqcG4/Pp0b9b.RWLCJUNcarBVhRV8tgVYwVsDRJz5/sS",
@@ -17,39 +8,27 @@
       "role": "CANDIDATE",
       "createdAt": "2026-09-05T17:02:20.511Z",
       "updatedAt": "2026-09-05T17:02:20.511Z"
+    },
+    {
+      "id": "user_test_candidate",
+      "email": "test.candidate@swipe-x.ai",
+      "passwordHash": "$2b$10$ir0qj3DRb.so6HsswFSY6OAoTZQv2mfSCHX6peSeiOZ0FKi3r/Gpi",
+      "name": "Morgan Test",
+      "role": "CANDIDATE",
+      "createdAt": "2026-09-09T08:36:57.420Z",
+      "updatedAt": "2026-09-09T08:36:57.420Z"
+    },
+    {
+      "id": "user_test_candidate",
+      "email": "test.candidate@swipe-x.ai",
+      "passwordHash": "$2b$10$V1tFP4hH4UxhNeu1E8iET.zjs0ZWiShhMotBf0alLwvox5XOgURda",
+      "name": "Morgan Test",
+      "role": "CANDIDATE",
+      "createdAt": "2026-09-09T08:37:17.365Z",
+      "updatedAt": "2026-09-09T08:37:17.365Z"
     }
   ],
   "candidateProfiles": [
-    {
-      "id": "cand_demo_candidate_01",
-      "userId": "user_demo_candidate_01",
-      "name": "Alex Morgan",
-      "email": "candidate.demo@swipe-x.ai",
-      "phone": "(415) 890-1234",
-      "location": "San Francisco, CA",
-      "summary": "Senior Full Stack & AI Systems Engineer with 5+ years of production experience building high-scale distributed systems, React interfaces, and LLM-powered applications.",
-      "preferredRole": "Senior Full Stack Engineer",
-      "preferredLocation": "Remote",
-      "preferredWorkType": "Remote",
-      "experienceLevel": "Senior",
-      "targetSalary": 165000,
-      "skills": [
-        "TypeScript",
-        "React",
-        "Node.js",
-        "Python",
-        "PostgreSQL",
-        "Docker",
-        "AWS",
-        "LLMs",
-        "Tailwind CSS",
-        "GraphQL"
-      ],
-      "experienceYears": 5,
-      "profileCompletionScore": 90,
-      "createdAt": "2026-09-05T15:45:50.856Z",
-      "updatedAt": "2026-09-05T15:45:50.856Z"
-    },
     {
       "id": "cand_test_profile",
       "userId": "user_test_candidate",
@@ -68,6 +47,44 @@
       "profileCompletionScore": 85,
       "createdAt": "2026-09-05T17:02:20.512Z",
       "updatedAt": "2026-09-05T17:02:20.512Z"
+    },
+    {
+      "id": "cand_test_profile",
+      "userId": "user_test_candidate",
+      "name": "Morgan Test",
+      "email": "test.candidate@swipe-x.ai",
+      "preferredRole": "Senior Full Stack Engineer",
+      "skills": [
+        "TypeScript",
+        "React",
+        "Node.js",
+        "Python",
+        "AWS",
+        "PostgreSQL"
+      ],
+      "experienceYears": 4,
+      "profileCompletionScore": 85,
+      "createdAt": "2026-09-09T08:36:57.420Z",
+      "updatedAt": "2026-09-09T08:36:57.420Z"
+    },
+    {
+      "id": "cand_test_profile",
+      "userId": "user_test_candidate",
+      "name": "Morgan Test",
+      "email": "test.candidate@swipe-x.ai",
+      "preferredRole": "Senior Full Stack Engineer",
+      "skills": [
+        "TypeScript",
+        "React",
+        "Node.js",
+        "Python",
+        "AWS",
+        "PostgreSQL"
+      ],
+      "experienceYears": 4,
+      "profileCompletionScore": 85,
+      "createdAt": "2026-09-09T08:37:17.366Z",
+      "updatedAt": "2026-09-09T08:37:17.366Z"
     }
   ],
   "resumes": [
@@ -82,6 +99,30 @@
       "parsingStatus": "PARSED",
       "createdAt": "2026-09-05T17:02:23.705Z",
       "updatedAt": "2026-09-05T17:02:23.705Z"
+    },
+    {
+      "id": "res_test_01",
+      "userId": "user_test_candidate",
+      "candidateProfileId": "cand_test_profile",
+      "fileName": "Morgan_Test_Resume.pdf",
+      "fileSize": 2048,
+      "mimeType": "application/pdf",
+      "rawText": "\n  Morgan Test\n  Senior Software Engineer\n  San Francisco, CA | morgan@example.com\n  \n  Summary:\n  Senior Engineer with 4+ years of experience in React, TypeScript, Node.js, GraphQL, PostgreSQL, and AWS ECS.\n  \n  Experience:\n  Senior Full Stack Engineer at FinTech Corp (2022 - Present)\n  - Architected distributed microservices in Node.js and TypeScript handling 50k requests/sec.\n  - Built real-time analytics dashboard with React 19 and Tailwind CSS.\n  - Implemented automated CI/CD pipelines with Docker and AWS.\n  ",
+      "parsingStatus": "PARSED",
+      "createdAt": "2026-09-09T08:37:03.711Z",
+      "updatedAt": "2026-09-09T08:37:03.711Z"
+    },
+    {
+      "id": "res_test_01",
+      "userId": "user_test_candidate",
+      "candidateProfileId": "cand_test_profile",
+      "fileName": "Morgan_Test_Resume.pdf",
+      "fileSize": 2048,
+      "mimeType": "application/pdf",
+      "rawText": "\n  Morgan Test\n  Senior Software Engineer\n  San Francisco, CA | morgan@example.com\n  \n  Summary:\n  Senior Engineer with 4+ years of experience in React, TypeScript, Node.js, GraphQL, PostgreSQL, and AWS ECS.\n  \n  Experience:\n  Senior Full Stack Engineer at FinTech Corp (2022 - Present)\n  - Architected distributed microservices in Node.js and TypeScript handling 50k requests/sec.\n  - Built real-time analytics dashboard with React 19 and Tailwind CSS.\n  - Implemented automated CI/CD pipelines with Docker and AWS.\n  ",
+      "parsingStatus": "PARSED",
+      "createdAt": "2026-09-09T08:37:24.443Z",
+      "updatedAt": "2026-09-09T08:37:24.443Z"
     }
   ],
   "resumeData": [
@@ -159,18 +200,18 @@
       "education": [],
       "projects": [],
       "certifications": [],
-      "atsReadinessScore": 75,
+      "atsReadinessScore": 85,
       "strengths": [
         "Clear technical skill taxonomy",
         "Impactful metrics in work history"
       ],
       "areasForImprovement": [
         "Add education section",
-        "Include phone number",
-        "Expand on professional summary"
+        "Quantify revenue or latency impact",
+        "Include phone number for contactability"
       ],
-      "createdAt": "2026-09-05T17:02:23.716Z",
-      "updatedAt": "2026-09-05T17:02:23.716Z"
+      "createdAt": "2026-09-09T08:37:24.454Z",
+      "updatedAt": "2026-09-09T08:37:24.454Z"
     }
   ],
   "jobs": [
@@ -47640,6 +47681,20 @@
       "jobId": "job_0006",
       "decision": "RIGHT",
       "createdAt": "2026-09-05T17:02:26.756Z"
+    },
+    {
+      "id": "sw_test_01",
+      "candidateProfileId": "cand_test_profile",
+      "jobId": "job_0001",
+      "decision": "RIGHT",
+      "createdAt": "2026-09-09T08:37:15.423Z"
+    },
+    {
+      "id": "sw_test_01",
+      "candidateProfileId": "cand_test_profile",
+      "jobId": "job_0011",
+      "decision": "RIGHT",
+      "createdAt": "2026-09-09T08:37:35.270Z"
     }
   ],
   "savedJobs": [],
@@ -47705,6 +47760,134 @@
         {
           "status": "APPLIED",
           "timestamp": "2026-09-05T17:02:26.764Z",
+          "note": "Applied"
+        }
+      ]
+    },
+    {
+      "id": "app_test_01",
+      "candidateProfileId": "cand_test_profile",
+      "jobId": "job_0001",
+      "job": {
+        "id": "job_0001",
+        "title": "Mobile Engineer (React Native & iOS)",
+        "company": "Uber",
+        "location": "Remote (US / Canada)",
+        "link": "https://www.indeed.com/jobs/view/uber-mobile-engineer--react-native--100001",
+        "source": "Indeed",
+        "datePosted": "2026-08-27",
+        "workType": "Hybrid",
+        "employmentType": "Full-time",
+        "companyType": "MNC",
+        "description": "About Uber:\nUber is an industry-leading technology company building the future of software infrastructure",
+        "salaryMin": 110000,
+        "salaryMax": 160000,
+        "salaryCurrency": "USD",
+        "extractedSkills": [
+          "React",
+          "React Native"
+        ],
+        "experienceRequirements": "5+ years of relevant experience",
+        "educationRequirements": "Degree or equivalent practical experience",
+        "experienceLevel": "Mid",
+        "normalizedTitle": "mobile engineer react native  ios",
+        "normalizedCompany": "uber",
+        "normalizedLocation": "remote us  canada",
+        "keywords": [
+          "react",
+          "react native",
+          "mobile",
+          "engineer",
+          "(react",
+          "native",
+          "ios)",
+          "uber",
+          "hybrid",
+          "full-time"
+        ],
+        "applicantsCount": 6,
+        "competitionLevel": "Low",
+        "isEarlyApplicant": true,
+        "isFresherFriendly": false,
+        "postedTimeAgo": "1d ago",
+        "isFresh": false,
+        "createdAt": "2026-09-05T15:06:55.455Z",
+        "updatedAt": "2026-09-05T15:06:55.455Z"
+      },
+      "resumeId": "res_test_01",
+      "atsReportId": "ats_1788943035423_vd36i",
+      "atsScore": 73,
+      "status": "APPLIED",
+      "appliedDate": "2026-09-09T08:37:15.431Z",
+      "updatedDate": "2026-09-09T08:37:15.431Z",
+      "statusHistory": [
+        {
+          "status": "APPLIED",
+          "timestamp": "2026-09-09T08:37:15.431Z",
+          "note": "Applied"
+        }
+      ]
+    },
+    {
+      "id": "app_test_01",
+      "candidateProfileId": "cand_test_profile",
+      "jobId": "job_0011",
+      "job": {
+        "id": "job_0011",
+        "title": "Mobile Engineer (React Native & iOS)",
+        "company": "Loom",
+        "location": "Los Angeles",
+        "link": "CA (Hybrid)",
+        "source": "https://www.builtin.com/jobs/view/loom-mobile-engineer--react-native--100011",
+        "datePosted": "BuiltIn",
+        "workType": "Remote",
+        "employmentType": "Full-time",
+        "companyType": "Newly Founded",
+        "description": "Full-time",
+        "salaryMin": 110000,
+        "salaryMax": 160000,
+        "salaryCurrency": "USD",
+        "extractedSkills": [
+          "React",
+          "React Native"
+        ],
+        "experienceRequirements": "2-4 years of experience",
+        "educationRequirements": "Degree or equivalent practical experience",
+        "experienceLevel": "Mid",
+        "normalizedTitle": "mobile engineer react native  ios",
+        "normalizedCompany": "loom",
+        "normalizedLocation": "los angeles",
+        "keywords": [
+          "react",
+          "react native",
+          "mobile",
+          "engineer",
+          "(react",
+          "native",
+          "ios)",
+          "loom",
+          "remote",
+          "full-time"
+        ],
+        "applicantsCount": 7,
+        "competitionLevel": "Low",
+        "isEarlyApplicant": true,
+        "isFresherFriendly": false,
+        "postedTimeAgo": "1d ago",
+        "isFresh": false,
+        "createdAt": "2026-09-05T15:06:55.455Z",
+        "updatedAt": "2026-09-05T15:06:55.455Z"
+      },
+      "resumeId": "res_test_01",
+      "atsReportId": "ats_1788943055269_lhe29",
+      "atsScore": 73,
+      "status": "APPLIED",
+      "appliedDate": "2026-09-09T08:37:35.277Z",
+      "updatedDate": "2026-09-09T08:37:35.277Z",
+      "statusHistory": [
+        {
+          "status": "APPLIED",
+          "timestamp": "2026-09-09T08:37:35.277Z",
           "note": "Applied"
         }
       ]

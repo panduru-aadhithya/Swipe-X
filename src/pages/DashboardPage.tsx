@@ -7,7 +7,6 @@ import {
   Briefcase, 
   ArrowRight, 
   ShieldCheck, 
-  TrendingUp, 
   Clock, 
   Layers,
   ChevronRight,
@@ -42,104 +41,138 @@ export const DashboardPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full max-w-full space-y-8 pb-12">
+    <div className="w-full max-w-full space-y-6 sm:space-y-7 pb-12 -mt-5 sm:-mt-8">
       
-      {/* Welcome Banner - Modern SaaS Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-[#0F172A] p-7 sm:p-9 text-white border border-slate-800 shadow-xl">
+      {/* Welcome Banner - Modern SaaS Header (Blue Card elevated upward) */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0F1E36] via-[#1E293B] to-[#1E1B4B] p-6 sm:p-8 text-white border border-blue-500/30 shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold border border-indigo-400/30">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Swipe X — Centralized Career Overview</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-bold border border-blue-400/30">
+              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              <span>Swipe X — Centralized Career Platform</span>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold font-serif tracking-tight text-white">
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
               Welcome back, {profile?.name || 'Candidate'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              We’ve benchmarked <strong className="text-white font-bold">{summary?.recommendedJobsCount || 40} centralized opportunities</strong> matching your targeted profile as a <strong className="text-indigo-400 font-semibold">{profile?.preferredRole || 'Senior Full Stack Engineer'}</strong>.
+              We’ve benchmarked <strong className="text-white font-bold">{summary?.recommendedJobsCount || 0} opportunities</strong> matching your targeted profile as a <strong className="text-blue-300 font-semibold">{profile?.preferredRole || 'Candidate'}</strong>.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/candidate/explore"
-              className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 transition-all hover:scale-105"
+              className="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 transition-all hover:scale-105"
             >
               <Briefcase className="w-4 h-4" /> Discover Opportunities
             </Link>
 
             <Link
-              to="/candidate/interview"
+              to="/candidate/ats"
               className="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs sm:text-sm border border-white/15 backdrop-blur-md shadow-sm transition-all flex items-center gap-2"
             >
-              <Mic className="w-4 h-4 text-purple-300" /> Mock Interview
+              <FileCheck className="w-4 h-4 text-emerald-300" /> Resume ATS Scanner
             </Link>
           </div>
         </div>
       </div>
 
+      {/* Mandatory Resume Upload Prompt Banner (When user has no active resume) */}
+      {summary?.hasActiveResume === false && (
+        <div className="p-5 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-700 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-white/20 rounded-xl">
+              <FileCheck className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-bold">Action Required: Upload Your Resume</p>
+              <p className="text-xs text-blue-100">
+                To receive authentic ATS evaluations and accurate job recommendations without default placeholders, please upload your resume.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/candidate/resume?promptUpload=true"
+            className="shrink-0 px-4 py-2 rounded-xl bg-white text-blue-700 hover:bg-blue-50 text-xs font-bold shadow-sm transition-colors"
+          >
+            Upload Resume Now →
+          </Link>
+        </div>
+      )}
+
       {/* Primary Key Metric Tiles (Modern SaaS style) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* ATS Readiness Score */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider font-serif">
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider font-display">
             <span>ATS Compatibility</span>
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900 dark:text-white font-serif">
-              {summary?.atsScore || 88}
-            </span>
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">/ 100</span>
-          </div>
+          {summary?.atsScore !== null && summary?.atsScore !== undefined ? (
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-slate-900 dark:text-white font-display">
+                {summary.atsScore}
+              </span>
+              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">/ 100</span>
+            </div>
+          ) : (
+            <div className="space-y-0.5">
+              <span className="text-xl font-bold text-slate-400 dark:text-slate-500 font-display">
+                Not Evaluated
+              </span>
+              <Link to="/candidate/resume?promptUpload=true" className="block text-[11px] font-semibold text-violet-600 dark:text-violet-400 hover:underline">
+                Upload resume to scan →
+              </Link>
+            </div>
+          )}
           <p className="text-xs text-slate-500">Benchmark against recruiter filters</p>
         </div>
 
         {/* Recommended Matches */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider font-serif">
-            <span>Centralized Jobs</span>
-            <Layers className="w-4 h-4 text-indigo-500" />
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider font-display">
+            <span>Verified Jobs</span>
+            <Layers className="w-4 h-4 text-violet-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900 dark:text-white font-serif">
+            <span className="text-3xl font-bold text-slate-900 dark:text-white font-display">
               {summary?.recommendedJobsCount || 1048}
             </span>
-            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Verified</span>
+            <span className="text-xs font-semibold text-violet-600 dark:text-violet-400">Verified</span>
           </div>
           <p className="text-xs text-slate-500">Live indexed from industry leaders</p>
         </div>
 
         {/* Saved Roles */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider font-serif">
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider font-display">
             <span>Saved Roles</span>
-            <Bookmark className="w-4 h-4 text-rose-500" />
+            <Bookmark className="w-4 h-4 text-orange-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900 dark:text-white font-serif">
+            <span className="text-3xl font-bold text-slate-900 dark:text-white font-display">
               {summary?.savedJobsCount || 0}
             </span>
             <span className="text-xs text-slate-500">Bookmarked</span>
           </div>
-          <Link to="/candidate/saved-jobs" className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline block">
+          <Link to="/candidate/saved-jobs" className="text-xs text-violet-600 dark:text-violet-400 font-semibold hover:underline block">
             View saved roles →
           </Link>
         </div>
 
         {/* Applications Submitted */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider font-serif">
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider font-display">
             <span>Active Pipeline</span>
-            <Briefcase className="w-4 h-4 text-indigo-500" />
+            <Briefcase className="w-4 h-4 text-violet-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900 dark:text-white font-serif">
+            <span className="text-3xl font-bold text-slate-900 dark:text-white font-display">
               {summary?.applicationsCount || 0}
             </span>
-            <span className="text-xs text-indigo-600 dark:text-indigo-400">Applications</span>
+            <span className="text-xs text-violet-600 dark:text-violet-400">Applications</span>
           </div>
-          <Link to="/candidate/applications" className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline block">
+          <Link to="/candidate/applications" className="text-xs text-violet-600 dark:text-violet-400 font-semibold hover:underline block">
             Track pipeline →
           </Link>
         </div>
@@ -149,7 +182,7 @@ export const DashboardPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white font-serif">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
               Top Ranked Opportunities For You
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
@@ -159,7 +192,7 @@ export const DashboardPage: React.FC = () => {
 
           <Link
             to="/candidate/explore"
-            className="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+            className="text-xs sm:text-sm font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1"
           >
             Explore All Openings <ChevronRight className="w-4 h-4" />
           </Link>
@@ -169,16 +202,16 @@ export const DashboardPage: React.FC = () => {
           {summary?.topRecommendations?.map((rec: any) => (
             <div
               key={rec.job.id}
-              className="p-6 rounded-3xl bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-slate-800 shadow-sm hover:border-indigo-400/50 transition-all flex flex-col justify-between space-y-4"
+              className="p-6 rounded-3xl bg-white dark:bg-[#151D2A] border border-slate-200/90 dark:border-slate-800 shadow-sm hover:border-violet-400/50 transition-all flex flex-col justify-between space-y-4"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm">
+                    <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/60 border border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold text-sm">
                       {rec.job.company.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="font-bold text-base text-slate-900 dark:text-white font-serif">
+                      <h3 className="font-bold text-base text-slate-900 dark:text-white font-display">
                         {rec.job.title}
                       </h3>
                       <p className="text-xs text-slate-500 font-medium flex items-center gap-1 mt-0.5">
@@ -208,46 +241,13 @@ export const DashboardPage: React.FC = () => {
                 </span>
                 <Link
                   to={`/candidate/jobs/${rec.job.id}`}
-                  className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                  className="font-bold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1"
                 >
                   Inspect & Apply <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Real-time Insights & Telemetry */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-          <h3 className="text-base font-bold text-slate-900 dark:text-white font-serif">
-            Adaptive Job Market Intelligence
-          </h3>
-        </div>
-
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-          Swipe X's matching engine dynamically recalibrates your personalized recommendation weights based on your target skills, engagement preferences, and market demand.
-        </p>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center pt-2">
-          <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80">
-            <span className="text-xs text-slate-400 block">Total Evaluations</span>
-            <span className="text-lg font-bold text-slate-900 dark:text-white font-serif">{summary?.swipesCount || 0}</span>
-          </div>
-          <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300">
-            <span className="text-xs block opacity-80">Saved & Applied</span>
-            <span className="text-lg font-bold font-serif">{(summary?.savedJobsCount || 0) + (summary?.applicationsCount || 0)}</span>
-          </div>
-          <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300">
-            <span className="text-xs block opacity-80">Profile Skills</span>
-            <span className="text-lg font-bold font-serif">{profile?.skills?.length || 8}</span>
-          </div>
-          <div className="p-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300">
-            <span className="text-xs block opacity-80">Target Role</span>
-            <span className="text-xs font-bold truncate block mt-1">{profile?.preferredRole || 'Full Stack'}</span>
-          </div>
         </div>
       </div>
     </div>

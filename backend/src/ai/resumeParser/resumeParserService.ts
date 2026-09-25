@@ -26,6 +26,13 @@ export class ResumeParserService {
       const prompt = `
 You are an expert AI Resume Parser & ATS System Specialist. Parse the following resume text into a strictly structured JSON response.
 
+Strict Rules:
+- Only extract information that is explicitly written in the provided resume text.
+- Do NOT fabricate, invent, or substitute placeholder companies, job titles, universities, degrees, skills, phone numbers, or email addresses.
+- If a section (e.g. projects, certifications, education, experience) is not in the text, return an empty array [].
+- If phone, email, or location are not in the text, return an empty string "".
+- Compute atsReadinessScore (integer from 0 to 100) objectively based on formatting clarity, presence of contact info, skill taxonomy, and measurable experience bullets. Do NOT default to 85.
+
 Resume text:
 """
 ${rawText.slice(0, 10000)}
@@ -33,11 +40,11 @@ ${rawText.slice(0, 10000)}
 
 Respond with a valid JSON object matching this exact structure:
 {
-  "name": "Full Name",
-  "email": "email@example.com",
-  "phone": "Phone number or empty string",
-  "location": "City, State/Country or empty string",
-  "summary": "2-3 sentence executive professional summary",
+  "name": "Full Name extracted from resume or empty string",
+  "email": "email extracted from resume or empty string",
+  "phone": "phone extracted from resume or empty string",
+  "location": "location extracted from resume or empty string",
+  "summary": "Executive summary from resume or brief synopsis of resume text",
   "skills": [
     { "name": "Skill Name", "category": "Languages|Frameworks|Cloud/DevOps|Databases|AI/ML|Tools|Soft Skills|General", "level": "Beginner|Intermediate|Advanced|Expert" }
   ],
@@ -48,16 +55,16 @@ Respond with a valid JSON object matching this exact structure:
       "startDate": "YYYY or MMM YYYY",
       "endDate": "YYYY or Present",
       "current": true,
-      "duration": "e.g. 2 yrs",
-      "responsibilities": ["Action verb driven bullet point", "Quantifiable achievement"],
-      "technologies": ["Tech1", "Tech2"]
+      "duration": "Duration if stated or empty string",
+      "responsibilities": ["Bullet point from resume"],
+      "technologies": ["Tech extracted from this role"]
     }
   ],
   "education": [
     {
       "institution": "University / College",
-      "degree": "B.S. / M.S. / Certificate",
-      "field": "Computer Science / Engineering",
+      "degree": "Degree earned",
+      "field": "Field of study",
       "startDate": "YYYY",
       "endDate": "YYYY"
     }
@@ -65,20 +72,20 @@ Respond with a valid JSON object matching this exact structure:
   "projects": [
     {
       "name": "Project Name",
-      "description": "Project overview and impact",
-      "technologies": ["React", "Python"]
+      "description": "Project overview",
+      "technologies": ["Tech"]
     }
   ],
   "certifications": [
     {
-      "name": "AWS Certified Solutions Architect",
-      "issuer": "Amazon Web Services",
-      "date": "2024"
+      "name": "Certification Name",
+      "issuer": "Issuer",
+      "date": "Year"
     }
   ],
-  "atsReadinessScore": 85,
-  "strengths": ["Clear technical skill taxonomy", "Impactful metrics in work history"],
-  "areasForImprovement": ["Add more cloud architecture keywords", "Quantify revenue or latency impact"]
+  "atsReadinessScore": 0,
+  "strengths": ["Objective resume strength based purely on candidate content"],
+  "areasForImprovement": ["Objective recommendation based purely on candidate content"]
 }
 `;
 
@@ -101,7 +108,7 @@ Respond with a valid JSON object matching this exact structure:
       };
 
       try {
-        const result = await tryParseWithModel('gemini-3.7-flash');
+        const result = await tryParseWithModel('gemini-3.8-flash');
         if (result) return result;
       } catch (err: any) {
         try {
@@ -113,7 +120,7 @@ Respond with a valid JSON object matching this exact structure:
       }
     }
 
-    // Heuristic fallback
+    // Heuristic fallback without default/fabricated data
     return this.fallbackHeuristicParse(rawText, fileName);
   }
 
@@ -127,27 +134,57 @@ Respond with a valid JSON object matching this exact structure:
         }))
       : rawSkills.map(name => ({ name, category: 'General', level: 'Advanced' }));
 
+    const experiences = Array.isArray(parsed.experience) ? parsed.experience : [];
+    const educations = Array.isArray(parsed.education) ? parsed.education : [];
+    const projects = Array.isArray(parsed.projects) ? parsed.projects : [];
+    const certs = Array.isArray(parsed.certifications) ? parsed.certifications : [];
+
+    // Calculate real ATS readiness score if missing or invalid
+    let atsReadiness = typeof parsed.atsReadinessScore === 'number'
+      ? Math.min(100, Math.max(0, parsed.atsReadinessScore))
+      : this.calculateRealReadiness(skillsList.length, experiences.length, educations.length, rawText);
+
     return {
       name: parsed.name || this.extractNameHeuristic(rawText),
       email: parsed.email || this.extractEmailHeuristic(rawText),
       phone: parsed.phone || this.extractPhoneHeuristic(rawText),
-      location: parsed.location || 'Remote / US',
-      summary: parsed.summary || 'Experienced software professional with strong technical capabilities, problem solving, and product delivery.',
+      location: parsed.location || this.extractLocationHeuristic(rawText),
+      summary: parsed.summary || (rawText.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 3).join(' ').slice(0, 300)),
       skills: skillsList,
-      experience: Array.isArray(parsed.experience) ? parsed.experience : [],
-      education: Array.isArray(parsed.education) ? parsed.education : [],
-      projects: Array.isArray(parsed.projects) ? parsed.projects : [],
-      certifications: Array.isArray(parsed.certifications) ? parsed.certifications : [],
-      atsReadinessScore: typeof parsed.atsReadinessScore === 'number' ? Math.min(100, Math.max(20, parsed.atsReadinessScore)) : 80,
-      strengths: Array.isArray(parsed.strengths) && parsed.strengths.length > 0 ? parsed.strengths : ['Strong technical foundations', 'Clean formatting'],
-      areasForImprovement: Array.isArray(parsed.areasForImprovement) && parsed.areasForImprovement.length > 0 ? parsed.areasForImprovement : ['Include more metrics in work experience']
+      experience: experiences,
+      education: educations,
+      projects: projects,
+      certifications: certs,
+      atsReadinessScore: atsReadiness,
+      strengths: Array.isArray(parsed.strengths) && parsed.strengths.length > 0
+        ? parsed.strengths
+        : (skillsList.length > 0 ? [`Identified ${skillsList.length} verified technical skills.`] : ['Resume uploaded for evaluation.']),
+      areasForImprovement: Array.isArray(parsed.areasForImprovement) && parsed.areasForImprovement.length > 0
+        ? parsed.areasForImprovement
+        : (experiences.length === 0 ? ['Add employment history with quantifiable metric bullet points.'] : ['Expand on tech stack details.'])
     };
+  }
+
+  private calculateRealReadiness(skillCount: number, expCount: number, eduCount: number, text: string): number {
+    let score = 10;
+    if (this.extractEmailHeuristic(text)) score += 10;
+    if (this.extractPhoneHeuristic(text)) score += 10;
+    if (skillCount >= 10) score += 30;
+    else if (skillCount >= 5) score += 20;
+    else if (skillCount >= 1) score += 10;
+    if (expCount >= 3) score += 30;
+    else if (expCount >= 1) score += 20;
+    if (eduCount >= 1) score += 10;
+    return Math.min(100, Math.max(0, score));
   }
 
   private fallbackHeuristicParse(text: string, fileName?: string): ParsedResumeOutput {
     const email = this.extractEmailHeuristic(text);
     const phone = this.extractPhoneHeuristic(text);
-    const name = this.extractNameHeuristic(text) || (fileName ? fileName.replace(/\.[^/.]+$/, '') : 'Candidate');
+    const location = this.extractLocationHeuristic(text);
+    const name = this.extractNameHeuristic(text) || (fileName ? fileName.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ') : '');
+    
+    // Extract actual skills present in text
     const skills = extractSkillsFromText(text, '').map(s => ({
       name: s,
       category: 'Languages' as const,
@@ -155,83 +192,122 @@ Respond with a valid JSON object matching this exact structure:
     }));
 
     const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-    const summary = lines.slice(0, 4).join(' ').slice(0, 300) || 'Dedicated technology specialist passionate about software engineering, robust systems, and scalable user-centric solutions.';
+    const summary = lines.slice(0, 3).join(' ').slice(0, 300);
 
-    // Simple experience heuristic
-    const experiences: ResumeExperience[] = [
-      {
-        company: 'Technology Solutions Inc',
-        title: 'Senior Software Engineer',
-        startDate: '2022',
-        endDate: 'Present',
-        current: true,
-        duration: '2+ yrs',
-        responsibilities: [
-          'Architected and implemented high-throughput services with high reliability',
-          'Collaborated with cross-functional teams to ship core platform features',
-          'Mentored engineers and improved unit test coverage by 35%'
-        ],
-        technologies: skills.slice(0, 4).map(s => s.name)
-      },
-      {
-        company: 'Innovate Labs',
-        title: 'Full Stack Developer',
-        startDate: '2020',
-        endDate: '2022',
-        current: false,
-        duration: '2 yrs',
-        responsibilities: [
-          'Developed responsive web interfaces using modern frameworks',
-          'Integrated RESTful APIs and optimized database queries for 40% latency reduction'
-        ],
-        technologies: skills.slice(3, 7).map(s => s.name)
-      }
-    ];
+    // Parse real experience blocks if present in the text (DO NOT fabricate dummy companies!)
+    const experiences: ResumeExperience[] = [];
+    const experienceIndex = lines.findIndex(l => /^(experience|work experience|employment history|professional experience)/i.test(l));
+    const educationIndex = lines.findIndex(l => /^(education|academic background|qualifications)/i.test(l));
+    const projectsIndex = lines.findIndex(l => /^(projects|technical projects|key projects)/i.test(l));
 
-    const education: ResumeEducation[] = [
-      {
-        institution: 'University of Science & Technology',
-        degree: 'Bachelor of Science',
-        field: 'Computer Science',
-        startDate: '2016',
-        endDate: '2020'
+    if (experienceIndex !== -1) {
+      const endIdx = educationIndex > experienceIndex ? educationIndex : (projectsIndex > experienceIndex ? projectsIndex : Math.min(lines.length, experienceIndex + 15));
+      const expLines = lines.slice(experienceIndex + 1, endIdx);
+      
+      let currentExp: Partial<ResumeExperience> | null = null;
+      for (const line of expLines) {
+        if (line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-') && !line.startsWith('*')) {
+          if (currentExp && currentExp.title) {
+            experiences.push({
+              company: currentExp.company || 'Organization',
+              title: currentExp.title,
+              startDate: currentExp.startDate || '',
+              endDate: currentExp.endDate || 'Present',
+              current: true,
+              duration: '',
+              responsibilities: currentExp.responsibilities || [],
+              technologies: skills.slice(0, 3).map(s => s.name)
+            });
+          }
+          currentExp = {
+            title: line,
+            company: 'Organization',
+            responsibilities: []
+          };
+        } else if (currentExp && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*') || line.length > 20)) {
+          currentExp.responsibilities = currentExp.responsibilities || [];
+          currentExp.responsibilities.push(line.replace(/^[•\-*]\s*/, ''));
+        }
       }
-    ];
+      if (currentExp && currentExp.title) {
+        experiences.push({
+          company: currentExp.company || 'Organization',
+          title: currentExp.title,
+          startDate: currentExp.startDate || '',
+          endDate: currentExp.endDate || 'Present',
+          current: true,
+          duration: '',
+          responsibilities: currentExp.responsibilities || [],
+          technologies: skills.slice(0, 3).map(s => s.name)
+        });
+      }
+    }
+
+    // Parse real education if present (DO NOT fabricate dummy colleges!)
+    const education: ResumeEducation[] = [];
+    if (educationIndex !== -1) {
+      const endIdx = projectsIndex > educationIndex ? projectsIndex : Math.min(lines.length, educationIndex + 8);
+      const eduLines = lines.slice(educationIndex + 1, endIdx);
+      for (const line of eduLines) {
+        if (/university|college|institute|bachelor|master|b\.s|m\.s|degree|diploma/i.test(line)) {
+          education.push({
+            institution: line,
+            degree: line.includes('Bachelor') ? 'Bachelor of Science' : (line.includes('Master') ? 'Master of Science' : 'Degree'),
+            field: 'Computer Science / Engineering',
+            startDate: '',
+            endDate: ''
+          });
+        }
+      }
+    }
+
+    // Parse projects if present
+    const projects: ResumeProject[] = [];
+    if (projectsIndex !== -1) {
+      const projLines = lines.slice(projectsIndex + 1, Math.min(lines.length, projectsIndex + 8));
+      for (const line of projLines) {
+        if (line.length > 4 && line.length < 60 && !line.startsWith('•') && !line.startsWith('-')) {
+          projects.push({
+            name: line,
+            description: 'Documented in resume',
+            technologies: skills.slice(0, 3).map(s => s.name)
+          });
+        }
+      }
+    }
+
+    const atsReadinessScore = this.calculateRealReadiness(skills.length, experiences.length, education.length, text);
+
+    const strengths: string[] = [];
+    if (skills.length > 0) strengths.push(`Extracted ${skills.length} recognized skills from resume.`);
+    if (experiences.length > 0) strengths.push(`Identified ${experiences.length} work experience entries.`);
+    if (strengths.length === 0) strengths.push(`Resume text processed.`);
+
+    const areasForImprovement: string[] = [];
+    if (experiences.length === 0) areasForImprovement.push('Add a clearly titled Experience section with bulleted impact.');
+    if (skills.length < 5) areasForImprovement.push('Include a dedicated Skills section highlighting your tools & languages.');
+    if (!email || !phone) areasForImprovement.push('Ensure standard contact information (email, phone) is easily parseable.');
 
     return {
       name,
-      email: email || 'candidate@example.com',
-      phone: phone || '(555) 234-5678',
-      location: 'San Francisco, CA',
+      email,
+      phone,
+      location,
       summary,
       skills,
       experience: experiences,
       education,
-      projects: [
-        {
-          name: 'Distributed Cloud Microservices',
-          description: 'High-performance API gateway and event pipeline handling real-time data.',
-          technologies: skills.slice(0, 3).map(s => s.name)
-        }
-      ],
-      certifications: [
-        {
-          name: 'Cloud Practitioner Certification',
-          issuer: 'Cloud Provider',
-          date: '2023'
-        }
-      ],
-      atsReadinessScore: 84,
-      strengths: [
-        'Recognizable standard formatting and clean headings',
-        'Strong distribution of modern core technologies',
-        'Quantified achievements in primary experience records'
-      ],
-      areasForImprovement: [
-        'Incorporate specific cloud infrastructure metrics',
-        'Target domain-specific keywords for specialized roles'
-      ]
+      projects,
+      certifications: [],
+      atsReadinessScore,
+      strengths,
+      areasForImprovement
     };
+  }
+
+  private extractLocationHeuristic(text: string): string {
+    const match = text.match(/([A-Z][a-zA-Z\s]+,\s*[A-Z]{2})/);
+    return match ? match[1].trim() : '';
   }
 
   private extractEmailHeuristic(text: string): string {

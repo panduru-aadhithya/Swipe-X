@@ -5,8 +5,8 @@
 @layer base {
   :root {
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-serif: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Fraunces', 'Playfair Display', Georgia, serif;
+    --font-serif: 'Fraunces', 'Playfair Display', Georgia, serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
 

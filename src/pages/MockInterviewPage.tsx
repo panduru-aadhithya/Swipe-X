@@ -157,7 +157,7 @@ export const MockInterviewPage: React.FC = () => {
               <span className="text-xl font-black text-white font-serif">{gamification.mockInterviewsCompleted + completedSessions.length} Done</span>
             </div>
             <div className="px-5 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-left">
-              <span className="text-[10px] text-amber-200 uppercase font-bold block font-sans">Career Insights</span>
+              <span className="text-[10px] text-amber-200 uppercase font-bold block font-sans">Role Alignment</span>
               <span className="text-xl font-black text-amber-400 font-serif">⚡ High Fit</span>
             </div>
             <button

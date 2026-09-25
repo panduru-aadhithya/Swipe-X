@@ -35,30 +35,17 @@ export const atsController = {
       }
 
       const activeResume = resumeRepository.findActiveByCandidateId(profile.id);
-      let resumeData = activeResume ? resumeRepository.getResumeDataByResumeId(activeResume.id) : undefined;
+      const resumeData = activeResume ? resumeRepository.getResumeDataByResumeId(activeResume.id) : undefined;
 
-      if (!resumeData) {
-        // Build fallback resumeData from candidate profile
-        resumeData = {
-          id: `rd_prof_${profile.id}`,
-          resumeId: activeResume?.id || 'prof_resume',
-          candidateProfileId: profile.id,
-          name: profile.name,
-          email: profile.email,
-          phone: profile.phone,
-          location: profile.location,
-          summary: profile.summary || 'Software professional',
-          skills: (profile.skills || []).map(s => ({ name: s, category: 'General', level: 'Advanced' })),
-          experience: [],
-          education: [],
-          projects: [],
-          certifications: [],
-          atsReadinessScore: 78,
-          strengths: ['Relevant profile skills declared'],
-          areasForImprovement: ['Upload a complete resume document for deeper analysis'],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
+      if (!activeResume || !resumeData) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'RESUME_REQUIRED',
+            message: 'Please upload your resume before running an ATS scan. ATS analysis evaluates your real resume content, skills, and work history against job requirements.'
+          }
+        });
+        return;
       }
 
       // Check if report already cached

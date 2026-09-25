@@ -127,19 +127,52 @@ backend/
 - `getApplications(req, res)`: Returns submitted applications with tracking statuses (`APPLIED`, `REVIEWING`, `INTERVIEW`, `OFFER`, `REJECTED`).
 - `updateApplicationStatus(req, res)`: Updates application pipeline status.
 
-### 6. `backend/src/middleware/`
+#### `recruiterController.ts`
+- `getPipeline(req, res)`: Returns applicants across all posted jobs, along with ATS compatibility scores and applied timestamps.
+- `updateApplicationStage(req, res)`: Advances or changes candidate application stage (`REVIEWING`, `INTERVIEWING`, `OFFERED`, `REJECTED`).
+- `createJob(req, res)`: Allows recruiters to post new verified job opportunities to the platform deck.
+
+#### `adminController.ts`
+- `getStats(req, res)`: Returns platform-wide aggregate metrics (total users, total jobs, applications, ATS scans, average match score).
+- `getSystemHealth(req, res)`: Evaluates AI model scoring latency, checks database operational status, and reports uptime.
+- `getActivity(req, res)`: Returns live audit stream of system-wide swipe, application, and ATS activity.
+
+#### `notificationController.ts`
+- `getNotifications(req, res)`: Retrieves candidate notifications (interview invitations, status changes, new job matches).
+- `markAsRead(req, res)`: Marks notifications as read.
+
+### 6. `backend/src/database/mongoDb.ts` & Models
+* **`mongoDb.ts`**: Handles MongoDB Atlas connection lifecycle via Mongoose when `MONGODB_URI` is configured in environment variables. Supports graceful reconnects and connection pooling.
+* **Mongoose Models (`backend/src/models/`)**:
+  - `User.model.ts`: User authentication credentials, role (`candidate`, `recruiter`, `admin`), profile metadata.
+  - `CandidateProfile.model.ts`: Skills array, preferences, target title, salary expectations.
+  - `Resume.model.ts` & `ResumeData.model.ts`: Uploaded file metadata, raw text, and parsed structured JSON.
+  - `Job.model.ts`: Job listing schema with verified source URL, description, and extracted requirements.
+  - `ATSReport.model.ts`: Historical pre-flight ATS audit reports with 5-factor breakdown.
+  - `SwipeDecision.model.ts`: Candidate swipe records (`LEFT`, `RIGHT`, `SAVE`).
+  - `SavedJob.model.ts`: Bookmarked roles.
+  - `Application.model.ts`: Submitted job applications with stage state machine (`APPLIED`, `REVIEWING`, `INTERVIEWING`, `OFFERED`, `REJECTED`).
+  - `JobRecommendation.model.ts`: Pre-computed candidate recommendation scores.
+
+### 7. `backend/src/middleware/`
 - `authMiddleware.ts`:
   - `requireAuth`: Verifies `Authorization: Bearer <token>` header, decodes user payload, and attaches `req.user`. Returns `401 Unauthorized` if invalid or missing.
+  - `requireRole(roles)`: Enforces role-based access control (e.g. `recruiter` or `admin`).
   - `optionalAuth`: Soft-verifies token if present without rejecting unauthenticated calls.
 - `errorMiddleware.ts`:
   - `errorHandler`: Catches uncaught exceptions and sends uniform `{ error: string, statusCode: number }` responses.
 
-### 7. `backend/src/services/dataImporter.ts`
+### 8. `backend/src/services/dataImporter.ts`
 - `importJobsFromCSV()`: Reads `/data/clean_jobs.csv` with 1,048 real tech jobs.
 - Parses CSV rows, cleans whitespace, extracts salary min/max numbers, identifies skills (TypeScript, React, Python, AWS, Docker, Kubernetes, etc.), normalizes work types (Remote, Hybrid, On-site), and writes to `db.jobs`.
 
-### 8. `backend/src/utils/auth.ts`
+### 9. `backend/src/utils/auth.ts`
 - `hashPassword(password)`: Hashes plaintext with BCrypt (10 salt rounds).
 - `comparePassword(plain, hash)`: Compares plaintext against stored hash.
 - `generateToken(payload)`: Signs JWT with 7-day expiration.
 - `verifyToken(token)`: Validates JWT signature.
+
+### 10. Scripts & Tests
+- `backend/src/scripts/migrateJsonToMongo.ts`: Automatically migrates collections from `/data/db_store.json` to MongoDB Atlas.
+- `backend/src/scripts/generateDataset.ts`: Expands dataset with synthetic test cases.
+- `backend/tests/testCandidateWorkflow.ts`: End-to-end integration test validating auth, resume parsing, ATS scoring, and swiping.

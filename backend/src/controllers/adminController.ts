@@ -40,7 +40,7 @@ export const adminController = {
   // 2. User directory & management
   getUsers(req: AuthenticatedRequest, res: Response): void {
     const users = [
-      { id: 'user_cand_01', name: 'Alex Morgan', email: 'candidate.demo@swipe-x.ai', role: 'CANDIDATE', status: 'ACTIVE', joined: '2026-08-15', resumes: 2, applications: 4 },
+      { id: 'user_cand_01', name: 'Marcus Vance', email: 'marcus.vance@techdev.org', role: 'CANDIDATE', status: 'ACTIVE', joined: '2026-08-15', resumes: 2, applications: 4 },
       { id: 'user_rec_01', name: 'Sarah Chen', email: 'sarah.chen@stripe-hiring.com', role: 'RECRUITER', status: 'VERIFIED', joined: '2026-08-10', jobsPosted: 12, applicantsReviewed: 48 },
       { id: 'user_cand_02', name: 'Jordan Rivera', email: 'jordan.rivera@talent.io', role: 'CANDIDATE', status: 'ACTIVE', joined: '2026-08-20', resumes: 1, applications: 3 },
       { id: 'user_rec_02', name: 'David Miller', email: 'david.m@scale-talent.io', role: 'RECRUITER', status: 'VERIFIED', joined: '2026-08-12', jobsPosted: 8, applicantsReviewed: 29 },
@@ -61,8 +61,8 @@ export const adminController = {
   getActivityLogs(req: AuthenticatedRequest, res: Response): void {
     const now = new Date();
     const logs = [
-      { id: 'log_01', event: 'ATS_ANALYSIS_COMPLETED', user: 'Alex Morgan', details: 'Scored 94% on Senior Full Stack Role at Stripe', timestamp: new Date(now.getTime() - 4 * 60 * 1000).toISOString() },
-      { id: 'log_02', event: 'SWIPE_RIGHT_RECORDED', user: 'Alex Morgan', details: 'Swiped Right on AI Systems Engineer at Scale AI', timestamp: new Date(now.getTime() - 12 * 60 * 1000).toISOString() },
+      { id: 'log_01', event: 'ATS_ANALYSIS_COMPLETED', user: 'Marcus Vance', details: 'Scored 94% on Senior Full Stack Role at Stripe', timestamp: new Date(now.getTime() - 4 * 60 * 1000).toISOString() },
+      { id: 'log_02', event: 'SWIPE_RIGHT_RECORDED', user: 'Marcus Vance', details: 'Swiped Right on AI Systems Engineer at Scale AI', timestamp: new Date(now.getTime() - 12 * 60 * 1000).toISOString() },
       { id: 'log_03', event: 'JOB_POSTED', user: 'Sarah Chen (Recruiter)', details: 'Published Full-Stack Developer posting to candidate feed', timestamp: new Date(now.getTime() - 45 * 60 * 1000).toISOString() },
       { id: 'log_04', event: 'APPLICATION_SUBMITTED', user: 'Jordan Rivera', details: 'Submitted 4-step verified ATS application', timestamp: new Date(now.getTime() - 2 * 3600 * 1000).toISOString() },
       { id: 'log_05', event: 'RESUME_PARSED_AI', user: 'Elena Rostova', details: 'Extracted 18 verified skills & computed 91% ATS score', timestamp: new Date(now.getTime() - 4 * 3600 * 1000).toISOString() },

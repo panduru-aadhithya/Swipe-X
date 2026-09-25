@@ -10,16 +10,38 @@ const swipeDecisionSchema = new Schema<ISwipeDecision>(
   {
     _id: { type: String, default: function (this: any) { return this.id; } },
     id: { type: String, required: true, unique: true, index: true },
+    userId: { type: String, index: true },
     candidateProfileId: { type: String, required: true, index: true },
     jobId: { type: String, required: true, index: true },
+    action: {
+      type: String,
+      enum: ['right_swipe', 'left_swipe', 'save_swipe', 'RIGHT', 'LEFT', 'SAVE'],
+      default: 'right_swipe'
+    },
     decision: {
       type: String,
-      enum: ['LEFT', 'SAVE', 'RIGHT'],
+      enum: ['LEFT', 'SAVE', 'RIGHT', 'left_swipe', 'right_swipe'],
       required: true
     },
+    timestamp: { type: String, default: () => new Date().toISOString() },
+    createdAt: { type: String, default: () => new Date().toISOString() },
+
+    // Job attributes snapshot at the time of swipe
+    jobTitle: { type: String },
+    company: { type: String },
+    skills: [{ type: String }],
+    location: { type: String },
+    employmentType: { type: String },
+    experienceLevel: { type: String },
+    salary: { type: String },
+    jobCategory: { type: String },
+
+    // Job reference and Application linkage
     job: { type: Schema.Types.Mixed },
     applied: { type: Boolean, default: false },
-    createdAt: { type: String, default: () => new Date().toISOString() }
+    applicationId: { type: String },
+    applicationStatus: { type: String },
+    appliedDate: { type: String }
   },
   {
     collection: 'swipe_decisions',

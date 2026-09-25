@@ -29,7 +29,7 @@ import { NotificationsModal } from './NotificationsModal';
 import { SwipeXLogo } from './SwipeXLogo';
 
 export const Navbar: React.FC = () => {
-  const { user, profile, isAuthenticated, logout, demoLogin, activeRole, switchRole } = useAuth();
+  const { user, profile, isAuthenticated, logout, activeRole, switchRole } = useAuth();
   const { theme, setTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -74,12 +74,12 @@ export const Navbar: React.FC = () => {
           
           {/* Left: Brand Logo (Swipe X) */}
           <div className="flex items-center gap-8 shrink-0">
-            <Link to={isAuthenticated ? (activeRole === 'RECRUITER' ? '/recruiter' : activeRole === 'ADMIN' ? '/admin' : '/candidate/explore') : '/'} className="group">
+            <Link to={isAuthenticated ? (activeRole === 'RECRUITER' ? '/recruiter' : '/candidate/swipe') : '/'} className="group">
               <SwipeXLogo size="md" />
             </Link>
           </div>
 
-          {/* Center: Search Bar */}
+            {/* Center: Search Bar */}
           {isAuthenticated && (
             <form
               onSubmit={handleGlobalSearch}
@@ -98,7 +98,7 @@ export const Navbar: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setNavSearch('')}
-                  className="text-slate-400 hover:text-slate-600 text-xs px-1"
+                  className="text-slate-400 hover:text-slate-600 text-xs px-1 cursor-pointer"
                 >
                   ✕
                 </button>
@@ -114,7 +114,7 @@ export const Navbar: React.FC = () => {
               type="button"
               onClick={cycleTheme}
               title={`Current theme: ${theme}. Click to switch.`}
-              className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-2xs"
+              className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-2xs cursor-pointer"
             >
               {theme === 'light' ? (
                 <Sun className="w-4 h-4 text-amber-500" />
@@ -133,7 +133,7 @@ export const Navbar: React.FC = () => {
                     type="button"
                     onClick={() => setIsNotificationOpen(true)}
                     title="Notifications"
-                    className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-2xs relative"
+                    className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-2xs relative cursor-pointer"
                   >
                     <Bell className="w-4 h-4" />
                     {unreadCount > 0 && (
@@ -150,10 +150,10 @@ export const Navbar: React.FC = () => {
                   className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-2xs"
                 >
                   <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                    {profile?.name?.charAt(0) || 'A'}
+                    {(profile?.name || user?.name || 'U').charAt(0).toUpperCase()}
                   </div>
                   <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 hidden md:inline">
-                    {profile?.name || 'Alex Morgan'}
+                    {profile?.name || user?.name || 'My Profile'}
                   </span>
                 </Link>
 
@@ -164,7 +164,7 @@ export const Navbar: React.FC = () => {
                   onClick={handleLogout}
                   title="Sign Out"
                   aria-label="Sign Out"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 hover:border-rose-200 text-slate-600 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 transition-all text-xs font-semibold shadow-2xs shrink-0"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 hover:border-rose-200 text-slate-600 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 transition-all text-xs font-semibold shadow-2xs shrink-0 cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Sign Out</span>
@@ -172,14 +172,6 @@ export const Navbar: React.FC = () => {
               </>
             ) : (
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => demoLogin().then(() => navigate('/candidate/swipe'))}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-bold hover:bg-indigo-100 transition-colors"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" /> 1-Click Demo
-                </button>
-
                 <Link
                   to="/login"
                   className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-indigo-600"
@@ -189,7 +181,7 @@ export const Navbar: React.FC = () => {
 
                 <Link
                   to="/register"
-                  className="px-5 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs hover:scale-105 transition-all"
+                  className="px-5 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
                 >
                   Get Started
                 </Link>
@@ -200,7 +192,7 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 lg:hidden"
+              className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 lg:hidden cursor-pointer"
             >
               {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
@@ -211,63 +203,51 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1120] space-y-3">
+          <div className="lg:hidden p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#151D2A] space-y-3">
             {isAuthenticated ? (
               <div className="space-y-2 text-xs font-medium">
                 {/* Mobile Role Switcher */}
                 <div className="p-1 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center gap-1 mb-3">
                   <button
                     onClick={() => { switchRole('CANDIDATE'); setIsMobileMenuOpen(false); navigate('/candidate/swipe'); }}
-                    className={`flex-1 py-1.5 rounded-lg text-center font-bold ${activeRole === 'CANDIDATE' ? 'bg-white dark:bg-[#0F172A] text-indigo-600 shadow-xs' : 'text-slate-500'}`}
+                    className={`flex-1 py-1.5 rounded-lg text-center font-bold ${activeRole === 'CANDIDATE' ? 'bg-white dark:bg-[#0B1120] text-indigo-600 shadow-xs' : 'text-slate-500'}`}
                   >
                     Candidate
                   </button>
                   <button
                     onClick={() => { switchRole('RECRUITER'); setIsMobileMenuOpen(false); navigate('/recruiter'); }}
-                    className={`flex-1 py-1.5 rounded-lg text-center font-bold ${activeRole === 'RECRUITER' ? 'bg-white dark:bg-[#0F172A] text-purple-600 shadow-xs' : 'text-slate-500'}`}
+                    className={`flex-1 py-1.5 rounded-lg text-center font-bold ${activeRole === 'RECRUITER' ? 'bg-white dark:bg-[#0B1120] text-purple-600 shadow-xs' : 'text-slate-500'}`}
                   >
                     Recruiter
                   </button>
-                  <button
-                    onClick={() => { switchRole('ADMIN'); setIsMobileMenuOpen(false); navigate('/admin'); }}
-                    className={`flex-1 py-1.5 rounded-lg text-center font-bold ${activeRole === 'ADMIN' ? 'bg-white dark:bg-[#0F172A] text-rose-600 shadow-xs' : 'text-slate-500'}`}
-                  >
-                    Admin
-                  </button>
                 </div>
 
+                <Link to="/candidate/swipe" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 font-bold">
+                  ⚡ AI Match Deck
+                </Link>
+                <Link to="/candidate/applications" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
+                  Applications Tracker
+                </Link>
                 <Link to="/candidate/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
                   Dashboard
-                </Link>
-                <Link to="/candidate/swipe" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 font-bold">
-                  🔥 Swipe Discovery
                 </Link>
                 <Link to="/candidate/explore" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
                   Jobs / Market Explorer
                 </Link>
+                <Link to="/candidate/swipe-history" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
+                  Interaction History
+                </Link>
                 <Link to="/recruiter" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-purple-600 font-bold">
-                  💼 Recruiter Pipeline
+                  💼 Recruiter Studio & Applications
                 </Link>
-                <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-rose-600 font-bold">
-                  🛡️ Admin Command Center
-                </Link>
-                <Link to="/candidate/ats" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
-                  Resume ATS Scanner
+                <Link to="/candidate/ats" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-teal-600 dark:text-teal-400 font-bold">
+                  📄 Resume ATS Scanner
                 </Link>
                 <Link to="/candidate/resume" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
                   My Resumes & AI
                 </Link>
                 <Link to="/candidate/saved-jobs" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
                   Saved Roles
-                </Link>
-                <Link to="/candidate/applications" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
-                  Applications Tracker
-                </Link>
-                <Link to="/candidate/interview" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-purple-600 font-bold">
-                  🎙️ Mock Interview Flow
-                </Link>
-                <Link to="/candidate/growth" onClick={() => setIsMobileMenuOpen(false)} className="block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-amber-600 font-bold">
-                  ⚡ Growth Journey & XP
                 </Link>
 
                 <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
@@ -277,7 +257,7 @@ export const Navbar: React.FC = () => {
                       setIsMobileMenuOpen(false);
                       handleLogout();
                     }}
-                    className="w-full py-2.5 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 text-rose-600 dark:text-rose-300 font-bold text-xs flex items-center justify-center gap-2 hover:bg-rose-100 transition-colors shadow-2xs"
+                    className="w-full py-2.5 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 text-rose-600 dark:text-rose-300 font-bold text-xs flex items-center justify-center gap-2 hover:bg-rose-100 transition-colors shadow-2xs cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" /> Sign Out
                   </button>
@@ -285,15 +265,11 @@ export const Navbar: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => { demoLogin(); setIsMobileMenuOpen(false); navigate('/candidate/swipe'); }}
-                  className="w-full py-2.5 rounded-xl bg-indigo-50 text-indigo-700 font-bold text-xs text-center block"
-                >
-                  1-Click Demo Login
-                </button>
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-xs text-center block">
                   Sign In
+                </Link>
+                <Link to="/register" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-xs text-center block">
+                  Create Account
                 </Link>
               </div>
             )}

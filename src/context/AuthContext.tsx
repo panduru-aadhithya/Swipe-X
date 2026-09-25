@@ -8,11 +8,12 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  activeRole: 'CANDIDATE' | 'RECRUITER' | 'ADMIN';
-  switchRole: (role: 'CANDIDATE' | 'RECRUITER' | 'ADMIN') => void;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
-  register: (data: { email: string; password: string; name: string; preferredRole?: string }) => Promise<void>;
-  demoLogin: () => Promise<void>;
+  hasActiveResume: boolean;
+  setHasActiveResume: (has: boolean) => void;
+  activeRole: 'CANDIDATE' | 'RECRUITER';
+  switchRole: (role: 'CANDIDATE' | 'RECRUITER') => void;
+  login: (credentials: { email: string; password: string } | string, maybePassword?: string) => Promise<{ hasActiveResume: boolean }>;
+  register: (data: { email: string; password: string; name: string; preferredRole?: string }) => Promise<{ hasActiveResume: boolean }>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
   updateProfileState: (updated: CandidateProfile) => void;
@@ -23,9 +24,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
+  const [hasActiveResume, setHasActiveResume] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('swipe_x_token'));
-  const [activeRole, setActiveRole] = useState<'CANDIDATE' | 'RECRUITER' | 'ADMIN'>(() => {
-    return (localStorage.getItem('swipe_x_active_role') as any) || 'CANDIDATE';
+  const [activeRole, setActiveRole] = useState<'CANDIDATE' | 'RECRUITER'>(() => {
+    const saved = localStorage.getItem('swipe_x_active_role');
+    return saved === 'RECRUITER' ? 'RECRUITER' : 'CANDIDATE';
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -39,11 +42,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         const data = await authApi.getMe();
+        if (data.user?.email === 'candidate.demo@swipe-x.ai' || data.user?.id === 'user_demo_candidate_01') {
+          localStorage.removeItem('swipe_x_token');
+          setToken(null);
+          setUser(null);
+          setProfile(null);
+          setHasActiveResume(false);
+          setIsLoading(false);
+          return;
+        }
+
         setUser(data.user);
         setProfile(data.profile);
+        setHasActiveResume(Boolean(data.hasActiveResume));
         if (data.user?.role) {
           const savedRole = localStorage.getItem('swipe_x_active_role');
-          setActiveRole((savedRole as any) || data.user.role);
+          const finalRole = savedRole === 'RECRUITER' || data.user.role === 'RECRUITER' ? 'RECRUITER' : 'CANDIDATE';
+          setActiveRole(finalRole);
         }
       } catch (err) {
         console.warn('Session expired or invalid token:', err);
@@ -51,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(null);
         setUser(null);
         setProfile(null);
+        setHasActiveResume(false);
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadCurrentUser();
   }, []);
 
-  const switchRole = (role: 'CANDIDATE' | 'RECRUITER' | 'ADMIN') => {
+  const switchRole = (role: 'CANDIDATE' | 'RECRUITER') => {
     setActiveRole(role);
     localStorage.setItem('swipe_x_active_role', role);
     if (user) {
@@ -67,20 +83,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (credentials: { email: string; password: string }) => {
+  const login = async (
+    credentials: { email: string; password: string } | string,
+    maybePassword?: string
+  ): Promise<{ hasActiveResume: boolean }> => {
     setIsLoading(true);
     try {
-      const res = await authApi.login(credentials);
+      const payload = typeof credentials === 'string'
+        ? { email: credentials, password: maybePassword || '' }
+        : credentials;
+      const res = await authApi.login(payload);
       localStorage.setItem('swipe_x_token', res.token);
       setToken(res.token);
       setUser(res.user);
       setProfile(res.profile);
+      const hasResume = Boolean(res.hasActiveResume);
+      setHasActiveResume(hasResume);
+      return { hasActiveResume: hasResume };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (data: { email: string; password: string; name: string; preferredRole?: string }) => {
+  const register = async (data: { email: string; password: string; name: string; preferredRole?: string }): Promise<{ hasActiveResume: boolean }> => {
     setIsLoading(true);
     try {
       const res = await authApi.register(data);
@@ -88,19 +113,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(res.token);
       setUser(res.user);
       setProfile(res.profile);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const demoLogin = async () => {
-    setIsLoading(true);
-    try {
-      const res = await authApi.demoLogin();
-      localStorage.setItem('swipe_x_token', res.token);
-      setToken(res.token);
-      setUser(res.user);
-      setProfile(res.profile);
+      const hasResume = Boolean(res.hasActiveResume);
+      setHasActiveResume(hasResume);
+      return { hasActiveResume: hasResume };
     } finally {
       setIsLoading(false);
     }
@@ -111,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     setProfile(null);
+    setHasActiveResume(false);
   };
 
   const refreshProfile = async () => {
@@ -134,11 +150,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         isAuthenticated: !!user,
         isLoading,
+        hasActiveResume,
+        setHasActiveResume,
         activeRole,
         switchRole,
         login,
         register,
-        demoLogin,
         logout,
         refreshProfile,
         updateProfileState

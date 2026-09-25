@@ -48,29 +48,49 @@ export class ATSAnalyzerService {
     const matchedKeywords = job.keywords.filter(kw => resumeTextBlob.includes(kw.toLowerCase()));
     const missingKeywords = job.keywords.filter(kw => !matchedKeywords.includes(kw)).slice(0, 8);
 
-    // Component scores
-    const skillRatio = jobSkills.length > 0 ? (matchedSkillsRaw.length / jobSkills.length) : 0.8;
-    const skillScore = Math.round(Math.min(100, Math.max(30, skillRatio * 100)));
+    // Component scores - strictly based on real resume content vs job posting
+    const skillRatio = jobSkills.length > 0 ? (matchedSkillsRaw.length / jobSkills.length) : (candidateSkills.length > 0 ? 0.5 : 0);
+    const skillScore = Math.min(100, Math.max(0, Math.round(skillRatio * 100)));
 
-    const keywordRatio = job.keywords.length > 0 ? (matchedKeywords.length / job.keywords.length) : 0.75;
-    const keywordScore = Math.round(Math.min(100, Math.max(25, keywordRatio * 100)));
+    const keywordRatio = job.keywords.length > 0 ? (matchedKeywords.length / job.keywords.length) : 0;
+    const keywordScore = Math.min(100, Math.max(0, Math.round(keywordRatio * 100)));
 
-    // Experience relevance
-    let experienceScore = 75;
-    if (resumeData.experience.length >= 3) experienceScore = 90;
-    else if (resumeData.experience.length >= 1) experienceScore = 80;
-    else experienceScore = 60;
-
-    // Education relevance
-    const educationScore = resumeData.education.length > 0 ? 90 : 70;
-
-    // Title relevance
-    const candidateTitles = resumeData.experience.map(e => e.title.toLowerCase());
-    const titleMatch = candidateTitles.some(ct => 
-      job.title.toLowerCase().includes(ct) || ct.includes(job.title.toLowerCase()) ||
-      (job.title.toLowerCase().includes('engineer') && ct.includes('engineer'))
+    // Title relevance - based strictly on candidate's real experience
+    const candidateTitles = (resumeData.experience || []).map(e => (e.title || '').toLowerCase());
+    const jobTitleLower = job.title.toLowerCase();
+    const hasDirectTitleMatch = candidateTitles.some(ct => 
+      ct && (jobTitleLower.includes(ct) || ct.includes(jobTitleLower))
     );
-    const titleScore = titleMatch ? 90 : 70;
+    const hasPartialTitleMatch = candidateTitles.some(ct => {
+      const words = jobTitleLower.split(/[\s/()]+/).filter(w => w.length > 3);
+      return words.some(w => ct.includes(w));
+    });
+
+    let titleScore = 0;
+    if (candidateTitles.length === 0) {
+      titleScore = 0;
+    } else if (hasDirectTitleMatch) {
+      titleScore = 95;
+    } else if (hasPartialTitleMatch) {
+      titleScore = 65;
+    } else {
+      titleScore = 20;
+    }
+
+    // Experience relevance - strictly based on uploaded experience records
+    let experienceScore = 0;
+    const expCount = (resumeData.experience || []).length;
+    if (expCount === 0) {
+      experienceScore = 0;
+    } else if (expCount >= 3) {
+      experienceScore = hasDirectTitleMatch ? 95 : 85;
+    } else if (expCount >= 1) {
+      experienceScore = hasDirectTitleMatch ? 80 : 65;
+    }
+
+    // Education relevance - strictly based on uploaded education records
+    const eduCount = (resumeData.education || []).length;
+    const educationScore = eduCount > 0 ? 90 : 0;
 
     const weightedScore = Math.round(
       skillScore * this.SCORING_WEIGHTS.skills +
@@ -80,7 +100,7 @@ export class ATSAnalyzerService {
       titleScore * this.SCORING_WEIGHTS.title
     );
 
-    const atsScore = Math.min(99, Math.max(35, weightedScore));
+    const atsScore = Math.min(100, Math.max(0, weightedScore));
 
     let suggestions: string[] = [];
     let strengths: string[] = [];
@@ -90,18 +110,19 @@ export class ATSAnalyzerService {
       const prompt = `
 You are an expert ATS (Applicant Tracking System) optimization advisor.
 Analyze this resume vs job description comparison and produce 3 actionable bullet suggestions for tailoring the resume, plus 2 specific strengths.
+Strict rule: Do NOT invent false praise or fabricated experiences. Ground all observations strictly in the provided resume data.
 
 Job Title: ${job.title}
 Job Company: ${job.company}
 Job Requirements Summary: ${job.description.slice(0, 1500)}
 
-Candidate Summary: ${resumeData.summary}
-Candidate Skills: ${resumeData.skills.map(s => s.name).join(', ')}
-Candidate Experience: ${resumeData.experience.map(e => `${e.title} at ${e.company}`).join('; ')}
+Candidate Summary: ${resumeData.summary || 'None provided'}
+Candidate Skills: ${resumeData.skills.map(s => s.name).join(', ') || 'None listed'}
+Candidate Experience: ${resumeData.experience.map(e => `${e.title} at ${e.company}`).join('; ') || 'No experience listed'}
 
-Matched Skills: ${matchedSkillsRaw.join(', ')}
-Missing Skills: ${missingSkillsRaw.join(', ')}
-Missing Keywords: ${missingKeywords.join(', ')}
+Matched Skills: ${matchedSkillsRaw.join(', ') || 'None'}
+Missing Skills: ${missingSkillsRaw.join(', ') || 'None'}
+Missing Keywords: ${missingKeywords.join(', ') || 'None'}
 
 Return valid JSON with:
 {
@@ -111,8 +132,8 @@ Return valid JSON with:
     "Specific actionable recommendation 3"
   ],
   "strengths": [
-    "Key strength 1",
-    "Key strength 2"
+    "Key verified strength 1",
+    "Key verified strength 2"
   ]
 }
 `;
@@ -123,7 +144,7 @@ Return valid JSON with:
           contents: prompt,
           config: {
             responseMimeType: 'application/json',
-            temperature: 0.2,
+            temperature: 0.1,
           },
         });
         const jsonText = response.text?.trim();
@@ -139,30 +160,44 @@ Return valid JSON with:
       };
 
       try {
-        await tryGenerate('gemini-3.7-flash');
+        await tryGenerate('gemini-3.8-flash');
       } catch (err: any) {
-        // If primary model experiences high load (503 / 429) or transient error, attempt flash-lite
         try {
           await tryGenerate('gemini-3.1-flash-lite');
         } catch (fallbackErr: any) {
-          // Gracefully fallback to deterministic suggestions
           console.info('Gemini ATS feedback model unavailable (using deterministic rules):', fallbackErr?.message || 'High demand');
         }
       }
     }
 
-    // Default suggestions if needed
+    // Authentic deterministic fallback suggestions if model didn't return them
     if (suggestions.length === 0) {
       if (missingSkillsRaw.length > 0) {
-        suggestions.push(`Integrate key required competencies: ${missingSkillsRaw.slice(0, 3).join(', ')} into your project or summary sections.`);
+        suggestions.push(`Incorporate key required technical competencies into your resume: ${missingSkillsRaw.slice(0, 3).join(', ')}.`);
       }
-      suggestions.push(`Quantify impact in your recent roles by highlighting latency reduction, revenue impact, or system throughput.`);
-      suggestions.push(`Ensure standard terminology matching "${job.title}" is clearly visible in your professional headline.`);
+      if (missingKeywords.length > 0) {
+        suggestions.push(`Align terminology with employer keywords: ${missingKeywords.slice(0, 3).join(', ')}.`);
+      }
+      if (expCount === 0) {
+        suggestions.push(`Add your professional work history or relevant internships to satisfy ATS experience screening.`);
+      } else {
+        suggestions.push(`Quantify impact in your role bullets (e.g. latency reduction %, throughput, team size, or revenue).`);
+      }
     }
 
     if (strengths.length === 0) {
-      strengths.push(`Strong overlap with core stack: ${matchedSkillsRaw.slice(0, 4).join(', ') || 'Software Engineering fundamentals'}.`);
-      strengths.push(`Demonstrated professional experience relevant to ${job.title} role.`);
+      if (matchedSkillsRaw.length > 0) {
+        strengths.push(`Direct skill match for ${matchedSkillsRaw.length} requirements: ${matchedSkillsRaw.slice(0, 4).join(', ')}.`);
+      }
+      if (hasDirectTitleMatch) {
+        strengths.push(`Direct title and role alignment with target ${job.title} specification.`);
+      }
+      if (eduCount > 0) {
+        strengths.push(`Academic credentials documented in resume.`);
+      }
+      if (strengths.length === 0) {
+        strengths.push(`Resume parsed with ${resumeData.skills.length} skills. Note: Specific job requirements differ from current profile skills.`);
+      }
     }
 
     const report: ATSReport = {

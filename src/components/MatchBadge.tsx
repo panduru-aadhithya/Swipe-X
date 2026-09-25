@@ -12,37 +12,38 @@ export const MatchBadge: React.FC<MatchBadgeProps> = ({
   size = 'md',
   showLabel = true
 }) => {
-  let colorClass = 'bg-[#5B6D5B]/15 text-[#5B6D5B] dark:text-[#8FA68F] border-[#5B6D5B]/40';
-  let badgeIcon = <Sparkles className="w-3.5 h-3.5 text-[#5B6D5B] dark:text-[#8FA68F]" />;
+  let colorClass = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60';
+  let badgeIcon = <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />;
 
   if (score >= 90) {
-    colorClass = 'bg-[#5B6D5B]/15 text-[#5B6D5B] dark:text-[#8FA68F] border-[#5B6D5B]/40';
-    badgeIcon = <Sparkles className="w-3.5 h-3.5 text-[#5B6D5B] dark:text-[#8FA68F]" />;
+    colorClass = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60';
+    badgeIcon = <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />;
   } else if (score >= 75) {
-    colorClass = 'bg-[#5A7787]/15 text-[#5A7787] dark:text-[#8BAAB9] border-[#5A7787]/40';
-    badgeIcon = <CheckCircle2 className="w-3.5 h-3.5 text-[#5A7787] dark:text-[#8BAAB9]" />;
+    colorClass = 'bg-violet-50 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300 border-violet-200 dark:border-violet-800/60';
+    badgeIcon = <CheckCircle2 className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />;
   } else if (score >= 60) {
-    colorClass = 'bg-[#C29352]/15 text-[#C29352] dark:text-[#E0B273] border-[#C29352]/40';
-    badgeIcon = <AlertCircle className="w-3.5 h-3.5 text-[#C29352] dark:text-[#E0B273]" />;
+    colorClass = 'bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300 border-orange-200 dark:border-orange-800/60';
+    badgeIcon = <AlertCircle className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />;
   } else {
-    colorClass = 'bg-[#B86B64]/15 text-[#B86B64] dark:text-[#D48982] border-[#B86B64]/40';
-    badgeIcon = <AlertCircle className="w-3.5 h-3.5 text-[#B86B64] dark:text-[#D48982]" />;
+    colorClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+    badgeIcon = <AlertCircle className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />;
   }
 
   const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5 gap-1',
-    md: 'text-sm px-2.5 py-1 gap-1.5 font-semibold',
-    lg: 'text-base px-3.5 py-1.5 gap-2 font-bold'
+    sm: 'text-xs px-2.5 py-0.5 gap-1 font-semibold',
+    md: 'text-xs sm:text-sm px-3 py-1 gap-1.5 font-bold',
+    lg: 'text-sm sm:text-base px-3.5 py-1.5 gap-2 font-black'
   };
 
   return (
     <span
       id={`match-badge-${score}`}
-      className={`inline-flex items-center rounded-full border ${colorClass} ${sizeClasses[size]}`}
+      className={`inline-flex items-center rounded-full border shadow-2xs font-display tracking-tight ${colorClass} ${sizeClasses[size]}`}
     >
       {badgeIcon}
       <span>{score}%</span>
-      {showLabel && <span className="text-xs font-medium opacity-85">Match</span>}
+      {showLabel && <span className="text-[11px] uppercase tracking-wider font-semibold opacity-90">Match</span>}
     </span>
   );
 };
+

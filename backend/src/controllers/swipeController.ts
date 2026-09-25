@@ -16,15 +16,38 @@ export const swipeController = {
         return;
       }
 
-      const { jobId, decision } = req.body as { jobId: string; decision: SwipeDecisionType };
+      const body = req.body as { 
+        jobId: string; 
+        action?: 'right_swipe' | 'left_swipe' | 'save_swipe' | 'RIGHT' | 'LEFT' | 'SAVE';
+        decision?: SwipeDecisionType;
+      };
 
-      if (!jobId || !decision || !['LEFT', 'SAVE', 'RIGHT'].includes(decision)) {
+      const jobId = body.jobId;
+      const rawActionOrDecision = body.action || body.decision;
+
+      if (!jobId || !rawActionOrDecision) {
         res.status(400).json({
           success: false,
-          error: { code: 'INVALID_SWIPE', message: 'Valid jobId and decision (LEFT, SAVE, RIGHT) are required' }
+          error: { code: 'INVALID_SWIPE', message: 'jobId and action (right_swipe or left_swipe) are required' }
         });
         return;
       }
+
+      // Normalize action and decision
+      const isRight = rawActionOrDecision === 'right_swipe' || rawActionOrDecision === 'RIGHT';
+      const isLeft = rawActionOrDecision === 'left_swipe' || rawActionOrDecision === 'LEFT';
+      const isSave = rawActionOrDecision === 'save_swipe' || rawActionOrDecision === 'SAVE';
+
+      if (!isRight && !isLeft && !isSave) {
+        res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_ACTION', message: 'action must be right_swipe, left_swipe, or save_swipe' }
+        });
+        return;
+      }
+
+      const action = isRight ? 'right_swipe' : isLeft ? 'left_swipe' : 'save_swipe';
+      const decision: SwipeDecisionType = isRight ? 'RIGHT' : isLeft ? 'LEFT' : 'SAVE';
 
       const job = jobRepository.findById(jobId);
       if (!job) {
@@ -35,34 +58,73 @@ export const swipeController = {
         return;
       }
 
+      // Check if user already applied for this job
+      const candidateApplications = applicationRepository.findByCandidate(profile.id);
+      const existingApp = candidateApplications.find(a => a.jobId === jobId);
+      const nowIso = new Date().toISOString();
+
+      // Format salary string if available
+      let salaryDisplay: string | undefined = undefined;
+      if (job.salaryMin && job.salaryMax) {
+        salaryDisplay = `${job.salaryCurrency || '$'}${job.salaryMin.toLocaleString()} - ${job.salaryCurrency || '$'}${job.salaryMax.toLocaleString()}`;
+      } else if (job.salaryMin) {
+        salaryDisplay = `${job.salaryCurrency || '$'}${job.salaryMin.toLocaleString()}+`;
+      }
+
       const swipe: SwipeDecision = {
         id: `sw_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        userId: req.user?.id || profile.userId || profile.id,
         candidateProfileId: profile.id,
         jobId,
+        action,
         decision,
-        createdAt: new Date().toISOString()
+        timestamp: nowIso,
+        createdAt: nowIso,
+
+        // Snapshot attributes at time of swipe
+        jobTitle: job.title,
+        company: job.company,
+        skills: job.extractedSkills || job.keywords || [],
+        location: job.location,
+        employmentType: job.employmentType,
+        experienceLevel: job.experienceLevel || job.experienceRequirements || 'Mid',
+        salary: salaryDisplay,
+        jobCategory: job.companyType || (job.keywords && job.keywords[0]) || 'Technology',
+
+        job,
+        applied: !!existingApp,
+        applicationId: existingApp?.id,
+        applicationStatus: existingApp?.status,
+        appliedDate: existingApp?.appliedDate
       };
 
       swipeRepository.record(swipe);
 
-      // If decision is SAVE, automatically add to saved jobs
-      if (decision === 'SAVE') {
+      // If action is right_swipe (interested) or save_swipe, make it available in the user's saved/interested section
+      if (isRight || isSave) {
         const saved: SavedJob = {
           id: `save_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
           candidateProfileId: profile.id,
           jobId,
           job,
-          createdAt: new Date().toISOString()
+          createdAt: nowIso
         };
         savedJobRepository.save(saved);
       }
 
       res.status(201).json({
         success: true,
-        message: `Swipe ${decision} recorded successfully`,
+        message: isRight 
+          ? 'Saved to Interested Roles in Swipe History' 
+          : isLeft 
+          ? 'Marked as Not Interested and saved to Swipe History' 
+          : 'Saved role to bookmarks',
         data: {
           swipe,
-          proceedToApply: decision === 'RIGHT'
+          action,
+          isInterested: isRight || isSave,
+          isRejected: isLeft,
+          proceedToApply: false // Right swipe means interested, separate from actual application submission
         }
       });
     } catch (err: any) {
@@ -83,24 +145,138 @@ export const swipeController = {
       return;
     }
 
+    const { action, filter } = req.query as { action?: string; filter?: string };
     const history = swipeRepository.findByCandidate(profile.id);
     const candidateApplications = applicationRepository.findByCandidate(profile.id);
-    const appliedJobIds = new Set(candidateApplications.map(a => a.jobId));
+    const appByJobId = new Map(candidateApplications.map(a => [a.jobId, a]));
 
     const enrichedHistory = history
       .map(s => {
-        const job = jobRepository.findById(s.jobId);
+        const job = jobRepository.findById(s.jobId) || s.job;
+        const app = appByJobId.get(s.jobId);
+        const resolvedAction = s.action || (s.decision === 'RIGHT' ? 'right_swipe' : s.decision === 'LEFT' ? 'left_swipe' : 'save_swipe');
         return {
           ...s,
+          userId: s.userId || req.user?.id || profile.userId || profile.id,
+          action: resolvedAction,
+          timestamp: s.timestamp || s.createdAt,
+          jobTitle: s.jobTitle || job?.title,
+          company: s.company || job?.company,
+          skills: s.skills || job?.extractedSkills || job?.keywords || [],
+          location: s.location || job?.location,
+          employmentType: s.employmentType || job?.employmentType,
+          experienceLevel: s.experienceLevel || job?.experienceLevel,
+          jobCategory: s.jobCategory || job?.companyType,
           job: job || undefined,
-          applied: appliedJobIds.has(s.jobId)
+          applied: !!app,
+          applicationId: app?.id,
+          applicationStatus: app?.status,
+          appliedDate: app?.appliedDate
         };
       })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .filter(s => {
+        const targetAction = action || filter;
+        if (!targetAction || targetAction === 'all') return true;
+        if (targetAction === 'right_swipe' || targetAction === 'interested') {
+          return s.decision === 'RIGHT' || s.action === 'right_swipe' || s.decision === 'SAVE';
+        }
+        if (targetAction === 'left_swipe' || targetAction === 'rejected') {
+          return s.decision === 'LEFT' || s.action === 'left_swipe';
+        }
+        return true;
+      })
+      .sort((a, b) => new Date(b.createdAt || b.timestamp || 0).getTime() - new Date(a.createdAt || a.timestamp || 0).getTime());
 
     res.json({
       success: true,
       data: enrichedHistory
+    });
+  },
+
+  async getInterestedJobs(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const profile = req.candidateProfile;
+    if (!profile) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'PROFILE_NOT_FOUND', message: 'Candidate profile not found' }
+      });
+      return;
+    }
+
+    const history = swipeRepository.findByCandidate(profile.id);
+    const candidateApplications = applicationRepository.findByCandidate(profile.id);
+    const appByJobId = new Map(candidateApplications.map(a => [a.jobId, a]));
+
+    const interested = history
+      .filter(s => s.decision === 'RIGHT' || s.action === 'right_swipe' || s.decision === 'SAVE')
+      .map(s => {
+        const job = jobRepository.findById(s.jobId) || s.job;
+        const app = appByJobId.get(s.jobId);
+        return {
+          ...s,
+          userId: s.userId || req.user?.id || profile.userId || profile.id,
+          action: 'right_swipe' as const,
+          timestamp: s.timestamp || s.createdAt,
+          jobTitle: s.jobTitle || job?.title,
+          company: s.company || job?.company,
+          skills: s.skills || job?.extractedSkills || job?.keywords || [],
+          location: s.location || job?.location,
+          employmentType: s.employmentType || job?.employmentType,
+          experienceLevel: s.experienceLevel || job?.experienceLevel,
+          jobCategory: s.jobCategory || job?.companyType,
+          job: job || undefined,
+          applied: !!app,
+          applicationId: app?.id,
+          applicationStatus: app?.status,
+          appliedDate: app?.appliedDate
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt || b.timestamp || 0).getTime() - new Date(a.createdAt || a.timestamp || 0).getTime());
+
+    res.json({
+      success: true,
+      total: interested.length,
+      data: interested
+    });
+  },
+
+  async getRejectedJobs(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const profile = req.candidateProfile;
+    if (!profile) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'PROFILE_NOT_FOUND', message: 'Candidate profile not found' }
+      });
+      return;
+    }
+
+    const history = swipeRepository.findByCandidate(profile.id);
+    const rejected = history
+      .filter(s => s.decision === 'LEFT' || s.action === 'left_swipe')
+      .map(s => {
+        const job = jobRepository.findById(s.jobId) || s.job;
+        return {
+          ...s,
+          userId: s.userId || req.user?.id || profile.userId || profile.id,
+          action: 'left_swipe' as const,
+          timestamp: s.timestamp || s.createdAt,
+          jobTitle: s.jobTitle || job?.title,
+          company: s.company || job?.company,
+          skills: s.skills || job?.extractedSkills || job?.keywords || [],
+          location: s.location || job?.location,
+          employmentType: s.employmentType || job?.employmentType,
+          experienceLevel: s.experienceLevel || job?.experienceLevel,
+          jobCategory: s.jobCategory || job?.companyType,
+          job: job || undefined,
+          applied: false
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt || b.timestamp || 0).getTime() - new Date(a.createdAt || a.timestamp || 0).getTime());
+
+    res.json({
+      success: true,
+      total: rejected.length,
+      data: rejected
     });
   },
 
@@ -323,7 +499,8 @@ export const applicationController = {
       if (existing) {
         res.status(409).json({
           success: false,
-          error: { code: 'ALREADY_APPLIED', message: 'You have already submitted an application for this position' }
+          error: { code: 'ALREADY_APPLIED', message: 'You have already applied for this job.' },
+          data: existing
         });
         return;
       }
@@ -332,8 +509,12 @@ export const applicationController = {
       const atsReport = atsRepository.findByCandidateAndJob(profile.id, jobId);
 
       const now = new Date().toISOString();
+      const year = new Date().getFullYear();
+      const randomSuffix = String(Math.floor(10000 + Math.random() * 90000));
+      const appId = `SWX-${year}-${randomSuffix}`;
+
       const app: Application = {
-        id: `app_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        id: appId,
         candidateProfileId: profile.id,
         jobId,
         job,
@@ -349,31 +530,48 @@ export const applicationController = {
           {
             status: 'APPLIED',
             timestamp: now,
-            note: 'Application submitted via Swipe X'
+            note: 'Application submitted via SwipeX'
           }
         ]
       };
 
-      applicationRepository.create(app);
+      // Persist to MongoDB and local state with write confirmation
+      await applicationRepository.create(app);
 
-      // Record positive swipe signal
+      // Record positive swipe signal and link application
       swipeRepository.record({
         id: `sw_${Date.now()}`,
         candidateProfileId: profile.id,
         jobId,
         decision: 'RIGHT',
+        action: 'right_swipe',
+        jobTitle: job.title,
+        company: job.company,
+        skills: job.extractedSkills || job.keywords || [],
+        location: job.location,
+        employmentType: job.employmentType,
+        experienceLevel: job.experienceLevel,
+        jobCategory: job.companyType,
+        applied: true,
+        applicationId: app.id,
+        applicationStatus: 'APPLIED',
+        appliedDate: now,
         createdAt: now
       });
 
       res.status(201).json({
         success: true,
-        message: 'Application submitted successfully! Your application is now in review.',
+        message: 'Application Submitted Successfully ✓',
         data: app
       });
     } catch (err: any) {
+      console.error('[ApplicationController] Failed to save application:', err);
       res.status(500).json({
         success: false,
-        error: { code: 'APPLICATION_SUBMIT_FAILED', message: err.message }
+        error: {
+          code: 'APPLICATION_SUBMIT_FAILED',
+          message: 'Application could not be submitted. Please try again.'
+        }
       });
     }
   },
@@ -431,6 +629,65 @@ export const applicationController = {
       success: true,
       message: `Status updated to ${status}`,
       data: updated
+    });
+  },
+
+  async updateApplicationNotes(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const profile = req.candidateProfile;
+    const { id } = req.params;
+    const { candidateNotes } = req.body;
+
+    if (!profile) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'PROFILE_NOT_FOUND', message: 'Candidate profile not found' }
+      });
+      return;
+    }
+
+    const app = applicationRepository.findById(id);
+    if (!app || app.candidateProfileId !== profile.id) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'APPLICATION_NOT_FOUND', message: 'Application not found or access denied' }
+      });
+      return;
+    }
+
+    const updated = applicationRepository.updateNotes(id, candidateNotes || '');
+    res.json({
+      success: true,
+      message: 'Application notes updated successfully',
+      data: updated
+    });
+  },
+
+  async withdrawApplication(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const profile = req.candidateProfile;
+    const { id } = req.params;
+
+    if (!profile) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'PROFILE_NOT_FOUND', message: 'Candidate profile not found' }
+      });
+      return;
+    }
+
+    const app = applicationRepository.findById(id);
+    if (!app || app.candidateProfileId !== profile.id) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'APPLICATION_NOT_FOUND', message: 'Application not found or access denied' }
+      });
+      return;
+    }
+
+    const removed = applicationRepository.delete(id);
+    res.json({
+      success: true,
+      message: 'Application withdrawn successfully',
+      data: { id, removed }
     });
   }
 };

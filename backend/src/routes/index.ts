@@ -58,6 +58,8 @@ export const swipeRoutes = Router();
 swipeRoutes.post('/', requireAuth, swipeController.recordSwipe);
 swipeRoutes.post('/undo', requireAuth, swipeController.undoSwipe);
 swipeRoutes.get('/history', requireAuth, swipeController.getSwipeHistory);
+swipeRoutes.get('/interested', requireAuth, swipeController.getInterestedJobs);
+swipeRoutes.get('/rejected', requireAuth, swipeController.getRejectedJobs);
 swipeRoutes.delete('/history', requireAuth, swipeController.clearHistory);
 swipeRoutes.delete('/:jobId', requireAuth, swipeController.deleteSwipe);
 
@@ -73,11 +75,14 @@ applicationRoutes.post('/', requireAuth, applicationController.submitApplication
 applicationRoutes.get('/', requireAuth, applicationController.getApplications);
 applicationRoutes.get('/:id', requireAuth, applicationController.getApplicationById);
 applicationRoutes.patch('/:id/status', requireAuth, applicationController.updateApplicationStatus);
+applicationRoutes.patch('/:id/notes', requireAuth, applicationController.updateApplicationNotes);
+applicationRoutes.delete('/:id', requireAuth, applicationController.withdrawApplication);
 
 // Recruiter Routes
 export const recruiterRoutes = Router();
 recruiterRoutes.post('/jobs', requireAuth, recruiterController.postJob);
 recruiterRoutes.get('/jobs', requireAuth, recruiterController.getPostedJobs);
+recruiterRoutes.delete('/jobs/:id', requireAuth, recruiterController.deleteJob);
 recruiterRoutes.get('/applicants', requireAuth, recruiterController.getApplicants);
 recruiterRoutes.patch('/applicants/:id/status', requireAuth, recruiterController.updateApplicantStatus);
 

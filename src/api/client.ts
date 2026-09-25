@@ -45,7 +45,13 @@ export async function apiRequest<T>(
 
     if (!res.ok || !data.success) {
       const code = data.error?.code || `HTTP_${res.status}`;
-      const msg = data.error?.message || `Request failed with status ${res.status}`;
+      let msg = data.error?.message || `Request failed with status ${res.status}`;
+      if (
+        endpoint.includes('/auth/login') &&
+        (msg.includes('is not valid JSON') || msg.includes('Unexpected token') || code === 'PARSE_ERROR')
+      ) {
+        msg = 'Invalid email or password';
+      }
       throw new ApiError(msg, code, data.error?.details);
     }
 

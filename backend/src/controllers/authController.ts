@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import { userRepository, candidateRepository } from '../repositories/userRepository';
+import { applicationRepository, jobRepository } from '../repositories/jobRepository';
+import { resumeRepository } from '../repositories/resumeRepository';
 import { hashPassword, comparePassword, generateToken } from '../utils/auth';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
-import { User, CandidateProfile } from '../types';
+import { User, CandidateProfile, Application } from '../types';
 
 export const authController = {
   async register(req: Request, res: Response): Promise<void> {
@@ -74,7 +76,8 @@ export const authController = {
             name: newUser.name,
             role: newUser.role
           },
-          profile: newProfile
+          profile: newProfile,
+          hasActiveResume: false
         }
       });
     } catch (err: any) {
@@ -87,17 +90,29 @@ export const authController = {
 
   async login(req: Request, res: Response): Promise<void> {
     try {
-      const { email, password } = req.body;
+      let email = req.body?.email;
+      let password = req.body?.password;
 
-      if (!email || !password) {
-        res.status(400).json({
+      // Handle case where body might be a parsed string or needs unwrapping
+      if (typeof req.body === 'string') {
+        try {
+          const parsed = JSON.parse(req.body);
+          email = parsed?.email || email;
+          password = parsed?.password || password;
+        } catch {
+          email = req.body;
+        }
+      }
+
+      if (!email || !password || typeof email !== 'string' || typeof password !== 'string' || email.trim() === 'candidate.demo@swipe-x.ai') {
+        res.status(401).json({
           success: false,
-          error: { code: 'VALIDATION_ERROR', message: 'Email and password are required' }
+          error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' }
         });
         return;
       }
 
-      const user = userRepository.findByEmail(email);
+      const user = userRepository.findByEmail(email.trim());
       if (!user || !comparePassword(password, user.passwordHash)) {
         res.status(401).json({
           success: false,
@@ -107,6 +122,7 @@ export const authController = {
       }
 
       const profile = candidateRepository.findByUserId(user.id);
+      const hasActiveResume = profile ? !!resumeRepository.findActiveByCandidateId(profile.id) : false;
       const token = generateToken(user);
 
       res.json({
@@ -120,7 +136,8 @@ export const authController = {
             name: user.name,
             role: user.role
           },
-          profile
+          profile,
+          hasActiveResume
         }
       });
     } catch (err: any) {
@@ -132,75 +149,28 @@ export const authController = {
   },
 
   async demoLogin(req: Request, res: Response): Promise<void> {
-    try {
-      const demoEmail = 'candidate.demo@swipe-x.ai';
-      let user = userRepository.findByEmail(demoEmail);
-
-      if (!user) {
-        const now = new Date().toISOString();
-        const userId = 'user_demo_candidate_01';
-        const candidateProfileId = 'cand_demo_candidate_01';
-
-        user = {
-          id: userId,
-          email: demoEmail,
-          passwordHash: hashPassword('DemoPassword123!'),
-          name: 'Alex Morgan',
-          role: 'CANDIDATE',
-          createdAt: now,
-          updatedAt: now
-        };
-
-        const profile: CandidateProfile = {
-          id: candidateProfileId,
-          userId: userId,
-          name: 'Alex Morgan',
-          email: demoEmail,
-          phone: '(415) 890-1234',
-          location: 'San Francisco, CA',
-          summary: 'Senior Full Stack & AI Systems Engineer with 5+ years of production experience building high-scale distributed systems, React interfaces, and LLM-powered applications.',
-          preferredRole: 'Senior Full Stack Engineer',
-          preferredLocation: 'Remote',
-          preferredWorkType: 'Remote',
-          experienceLevel: 'Senior',
-          targetSalary: 165000,
-          skills: ['TypeScript', 'React', 'Node.js', 'Python', 'PostgreSQL', 'Docker', 'AWS', 'LLMs', 'Tailwind CSS', 'GraphQL'],
-          experienceYears: 5,
-          profileCompletionScore: 90,
-          createdAt: now,
-          updatedAt: now
-        };
-
-        userRepository.create(user);
-        candidateRepository.create(profile);
+    res.status(410).json({
+      success: false,
+      error: {
+        code: 'DEMO_ACCOUNT_REMOVED',
+        message: 'Demo accounts have been completely removed. Please register or log in with your credentials.'
       }
-
-      const profile = candidateRepository.findByUserId(user.id);
-      const token = generateToken(user);
-
-      res.json({
-        success: true,
-        message: 'Logged in with Demo Candidate Account',
-        data: {
-          token,
-          user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role
-          },
-          profile
-        }
-      });
-    } catch (err: any) {
-      res.status(500).json({
-        success: false,
-        error: { code: 'DEMO_LOGIN_FAILED', message: err.message }
-      });
-    }
+    });
   },
 
   async getMe(req: AuthenticatedRequest, res: Response): Promise<void> {
+    if (req.user?.email === 'candidate.demo@swipe-x.ai' || req.user?.id === 'user_demo_candidate_01') {
+      res.status(401).json({
+        success: false,
+        error: { code: 'USER_NOT_FOUND', message: 'Demo account is no longer active. Please sign in with your real account.' }
+      });
+      return;
+    }
+
+    const hasActiveResume = req.candidateProfile
+      ? !!resumeRepository.findActiveByCandidateId(req.candidateProfile.id)
+      : false;
+
     res.json({
       success: true,
       data: {
@@ -210,7 +180,8 @@ export const authController = {
           name: req.user!.name,
           role: req.user!.role
         },
-        profile: req.candidateProfile
+        profile: req.candidateProfile,
+        hasActiveResume
       }
     });
   }

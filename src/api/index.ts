@@ -14,30 +14,24 @@ import {
   ApplicationStatus,
   AppNotification,
   RecruiterApplicant,
-  PlatformStats,
   BehavioralProfile
 } from '../types';
 
 export const authApi = {
   login: (credentials: { email: string; password: string }) =>
-    apiRequest<{ token: string; user: User; profile: CandidateProfile }>('/auth/login', {
+    apiRequest<{ token: string; user: User; profile: CandidateProfile; hasActiveResume?: boolean }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials)
     }),
 
   register: (data: { email: string; password: string; name: string; preferredRole?: string }) =>
-    apiRequest<{ token: string; user: User; profile: CandidateProfile }>('/auth/register', {
+    apiRequest<{ token: string; user: User; profile: CandidateProfile; hasActiveResume?: boolean }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data)
     }),
 
-  demoLogin: () =>
-    apiRequest<{ token: string; user: User; profile: CandidateProfile }>('/auth/demo-login', {
-      method: 'POST'
-    }),
-
   getMe: () =>
-    apiRequest<{ user: User; profile: CandidateProfile }>('/auth/me')
+    apiRequest<{ user: User; profile: CandidateProfile; hasActiveResume?: boolean }>('/auth/me')
 };
 
 export const profileApi = {
@@ -54,8 +48,9 @@ export const profileApi = {
     apiRequest<{
       profileCompletion: number;
       resumeStatus: string;
+      hasActiveResume?: boolean;
       resumeFileName?: string;
-      atsScore: number;
+      atsScore: number | null;
       recommendedJobsCount: number;
       savedJobsCount: number;
       applicationsCount: number;
@@ -91,11 +86,6 @@ export const resumeApi = {
 
   getActiveResume: () =>
     apiRequest<{ resume: Resume; resumeData: ResumeData } | null>('/resumes/active'),
-
-  loadDemoResume: () =>
-    apiRequest<{ resume: Resume; resumeData: ResumeData }>('/resumes/demo-load', {
-      method: 'POST'
-    }),
 
   getVersions: () =>
     apiRequest<{ versions: ResumeVersion[]; total: number }>('/resumes/versions'),
@@ -144,11 +134,11 @@ export const jobApi = {
     if (params?.isEarlyApplicant) query.set('isEarlyApplicant', 'true');
     if (params?.limit) query.set('limit', String(params.limit));
     if (params?.offset) query.set('offset', String(params.offset));
-    return apiRequest<{ jobs: Job[]; total: number; limit: number; offset: number }>(`/jobs?${query.toString()}`);
+    return apiRequest<{ jobs: Job[]; total: number; limit: number; offset: number; appliedJobIds?: string[] }>(`/jobs?${query.toString()}`);
   },
 
   getJobById: (id: string) =>
-    apiRequest<{ job: Job; matchInfo?: any; isSaved: boolean; applicationStatus?: ApplicationStatus }>(`/jobs/${id}`),
+    apiRequest<{ job: Job; matchInfo?: any; isSaved: boolean; applicationStatus?: ApplicationStatus; application?: Application }>(`/jobs/${id}`),
 
   getStats: () =>
     apiRequest<{ totalJobs: number; datasetSource: string; verifiedSources: string[] }>('/jobs/stats/summary')
@@ -169,11 +159,36 @@ export const recommendationApi = {
 };
 
 export const swipeApi = {
-  recordSwipe: (jobId: string, decision: 'LEFT' | 'SAVE' | 'RIGHT') =>
-    apiRequest<{ swipe: SwipeDecision; proceedToApply: boolean }>('/swipes', {
+  recordSwipe: (
+    jobId: string, 
+    actionOrDecision: 'right_swipe' | 'left_swipe' | 'save_swipe' | 'RIGHT' | 'LEFT' | 'SAVE',
+    snapshot?: {
+      jobTitle?: string;
+      company?: string;
+      skills?: string[];
+      location?: string;
+      employmentType?: string;
+      experienceLevel?: string;
+      salary?: string;
+      jobCategory?: string;
+    }
+  ) => {
+    const isRight = actionOrDecision === 'right_swipe' || actionOrDecision === 'RIGHT';
+    const isLeft = actionOrDecision === 'left_swipe' || actionOrDecision === 'LEFT';
+    const action = isRight ? 'right_swipe' : isLeft ? 'left_swipe' : 'save_swipe';
+    const decision = isRight ? 'RIGHT' : isLeft ? 'LEFT' : 'SAVE';
+
+    return apiRequest<{ 
+      swipe: SwipeDecision; 
+      action: string;
+      isInterested: boolean;
+      isRejected: boolean;
+      proceedToApply: boolean;
+    }>('/swipes', {
       method: 'POST',
-      body: JSON.stringify({ jobId, decision })
-    }),
+      body: JSON.stringify({ jobId, action, decision, ...snapshot })
+    });
+  },
 
   undoSwipe: (jobId?: string) =>
     apiRequest<{ jobId: string; undone: boolean }>('/swipes/undo', {
@@ -181,8 +196,16 @@ export const swipeApi = {
       body: JSON.stringify({ jobId })
     }),
 
-  getHistory: () =>
-    apiRequest<SwipeDecision[]>('/swipes/history'),
+  getHistory: (filter?: 'all' | 'interested' | 'rejected' | 'right_swipe' | 'left_swipe') => {
+    const query = filter ? `?filter=${encodeURIComponent(filter)}` : '';
+    return apiRequest<SwipeDecision[]>(`/swipes/history${query}`);
+  },
+
+  getInterestedJobs: () =>
+    apiRequest<SwipeDecision[]>('/swipes/interested'),
+
+  getRejectedJobs: () =>
+    apiRequest<SwipeDecision[]>('/swipes/rejected'),
 
   deleteSwipe: (jobId: string) =>
     apiRequest<{ jobId: string; removed: boolean }>(`/swipes/${jobId}`, {
@@ -228,6 +251,17 @@ export const applicationApi = {
     apiRequest<Application>(`/applications/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status, note })
+    }),
+
+  updateNotes: (id: string, candidateNotes: string) =>
+    apiRequest<Application>(`/applications/${id}/notes`, {
+      method: 'PATCH',
+      body: JSON.stringify({ candidateNotes })
+    }),
+
+  withdrawApplication: (id: string) =>
+    apiRequest<{ success: boolean; message: string }>(`/applications/${id}`, {
+      method: 'DELETE'
     })
 };
 
@@ -240,6 +274,11 @@ export const recruiterApi = {
 
   getPostedJobs: () =>
     apiRequest<{ jobs: Job[]; total: number }>('/recruiter/jobs'),
+
+  deleteJob: (jobId: string) =>
+    apiRequest<{ success: boolean; message: string }>(`/recruiter/jobs/${jobId}`, {
+      method: 'DELETE'
+    }),
 
   getApplicants: () =>
     apiRequest<{
@@ -260,17 +299,6 @@ export const recruiterApi = {
       method: 'PATCH',
       body: JSON.stringify({ status, note })
     })
-};
-
-export const adminApi = {
-  getStats: () =>
-    apiRequest<PlatformStats>('/admin/stats'),
-
-  getUsers: () =>
-    apiRequest<{ users: any[]; total: number }>('/admin/users'),
-
-  getActivityLogs: () =>
-    apiRequest<{ logs: any[]; total: number }>('/admin/activity')
 };
 
 export const notificationApi = {
